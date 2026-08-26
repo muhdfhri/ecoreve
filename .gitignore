@@ -4,13 +4,31 @@
 .env.development.local
 .env.test.local
 .env.production.local
+.env.backup
+.env.production
 *.env
 
-# Dependencies
+# Composer & Node Dependencies
+/vendor
 node_modules
 .pnpm-store
 
-# Production & Build outputs
+# Laravel Core Caches & Storage
+/bootstrap/cache/*.php
+!/bootstrap/cache/.gitignore
+/storage/*.key
+/storage/framework/cache/data/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+/storage/framework/testing/*
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/public/storage
+.phpunit.cache
+
+# Vite & Build Outputs
+/public/build
+/public/hot
 dist
 dist-ssr
 build
@@ -39,6 +57,7 @@ lerna-debug.log*
 .vscode/*
 !.vscode/extensions.json
 .idea
+.fleet
 .DS_Store
 Thumbs.db
 *.suo
@@ -50,4 +69,3 @@ Thumbs.db
 # Agent & AI tools temp data
 .gemini
 .antigravity
-
