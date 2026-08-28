@@ -40,29 +40,92 @@ export const QuickCreateCommandPalette: React.FC<QuickCreateCommandPaletteProps>
   const [searchQuery, setSearchQuery] = useState("");
   const [activeFilter, setActiveFilter] = useState("All");
 
-  // Handle Cmd+K / Ctrl+K keyboard shortcut
+  // Global listener for Alt+Key shortcuts (Alt+P, Alt+S, Alt+N, Alt+O, Alt+U, Alt+T, Alt+1..5)
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
+    const handleShortcutKeyDown = (e: KeyboardEvent) => {
+      // Toggle Command Palette (Ctrl+K / Cmd+K)
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         e.preventDefault();
-        if (isOpen) {
-          onClose();
-        } else {
-          // Open trigger handled by parent or state
-        }
+        if (isOpen) onClose();
       }
       if (e.key === "Escape" && isOpen) {
         onClose();
       }
+
+      // Alt Key Short-cuts
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const key = e.key.toLowerCase();
+        
+        if (key === "p") {
+          e.preventDefault();
+          setActiveTab("Products");
+          if (onOpenCreateProduct) onOpenCreateProduct();
+          onClose();
+        } else if (key === "s") {
+          e.preventDefault();
+          setActiveTab("Services");
+          if (onOpenCreateService) onOpenCreateService();
+          onClose();
+        } else if (key === "n") {
+          e.preventDefault();
+          setActiveTab("News");
+          if (onOpenCreateNews) onOpenCreateNews();
+          onClose();
+        } else if (key === "o") {
+          e.preventDefault();
+          setActiveTab("Offices");
+          if (onOpenCreateOffice) onOpenCreateOffice();
+          onClose();
+        } else if (key === "u") {
+          e.preventDefault();
+          setActiveTab("Users");
+          if (onOpenCreateUser) onOpenCreateUser();
+          onClose();
+        } else if (key === "t") {
+          e.preventDefault();
+          document.documentElement.classList.toggle("dark");
+          onClose();
+        } else if (key === "1") {
+          e.preventDefault();
+          setActiveTab("Overview");
+          onClose();
+        } else if (key === "2") {
+          e.preventDefault();
+          setActiveTab("Products");
+          onClose();
+        } else if (key === "3") {
+          e.preventDefault();
+          setActiveTab("Services");
+          onClose();
+        } else if (key === "4") {
+          e.preventDefault();
+          setActiveTab("Inquiries");
+          onClose();
+        } else if (key === "5") {
+          e.preventDefault();
+          setActiveTab("FAQs");
+          onClose();
+        }
+      }
     };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, onClose]);
+
+    window.addEventListener("keydown", handleShortcutKeyDown);
+    return () => window.removeEventListener("keydown", handleShortcutKeyDown);
+  }, [
+    isOpen,
+    onClose,
+    setActiveTab,
+    onOpenCreateProduct,
+    onOpenCreateService,
+    onOpenCreateNews,
+    onOpenCreateOffice,
+    onOpenCreateUser,
+  ]);
 
   if (!isOpen) return null;
 
   // Filter Categories
-  const categories = ["All", "Quick Create", "Navigation", "System", "Tools"];
+  const categories = ["All", "Quick Create", "Navigation", "System"];
 
   // Command items
   const favorites = [
@@ -75,18 +138,6 @@ export const QuickCreateCommandPalette: React.FC<QuickCreateCommandPaletteProps>
       shortcut: "Alt+T",
       action: () => {
         document.documentElement.classList.toggle("dark");
-        onClose();
-      },
-    },
-    {
-      id: "ask-ai",
-      title: "Ask AI Assistant",
-      subtitle: "Get instant AI water treatment insights",
-      category: "Tools",
-      icon: Sparkles,
-      shortcut: "Alt+Q",
-      action: () => {
-        alert("EcoReve AI Assistant activated!");
         onClose();
       },
     },
@@ -259,12 +310,6 @@ export const QuickCreateCommandPalette: React.FC<QuickCreateCommandPaletteProps>
           </div>
 
           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1 text-[11px] text-zinc-400 font-medium bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded-lg">
-              <span>Ask AI</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-300 font-mono text-[10px] shadow-xs">
-                Tab
-              </kbd>
-            </div>
             <button
               onClick={onClose}
               className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
@@ -359,7 +404,6 @@ export const QuickCreateCommandPalette: React.FC<QuickCreateCommandPaletteProps>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] text-zinc-400 font-medium">{item.category}</span>
                       <kbd className="px-2 py-1 rounded-lg bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px] font-bold text-zinc-500">
                         {item.shortcut}
                       </kbd>
@@ -370,35 +414,6 @@ export const QuickCreateCommandPalette: React.FC<QuickCreateCommandPaletteProps>
             </div>
           )}
 
-        </div>
-
-        {/* 4. FOOTER SHORTCUT HINTS */}
-        <div className="px-4 py-3 bg-zinc-50/80 dark:bg-zinc-800/50 border-t border-zinc-200 dark:border-zinc-800 flex items-center justify-between text-[11px] text-zinc-400 font-medium shrink-0">
-          <div className="flex items-center gap-1.5">
-            <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px] text-zinc-600 dark:text-zinc-300 shadow-xs">
-              ⌘ + K
-            </kbd>
-            <span>Command Palette</span>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1">
-              <span>Navigate</span>
-              <kbd className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px] text-zinc-600 dark:text-zinc-300">
-                ↑
-              </kbd>
-              <kbd className="px-1 py-0.5 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px] text-zinc-600 dark:text-zinc-300">
-                ↓
-              </kbd>
-            </div>
-            <span>|</span>
-            <div className="flex items-center gap-1">
-              <span>Execute</span>
-              <kbd className="px-1.5 py-0.5 rounded bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 font-mono text-[10px] text-zinc-600 dark:text-zinc-300">
-                ↵
-              </kbd>
-            </div>
-          </div>
         </div>
 
       </div>

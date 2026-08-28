@@ -8,38 +8,38 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. Standalone Product Categories Table (Mendukung CRUD Kategori)
+        // 1. Standalone Product Categories Table (Mendukung CRUD Kategori 5 Bahasa)
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
+            $table->json('name'); // JSON 5 Bahasa: {"en": "...", "id": "...", "ms": "...", "th": "...", "zh": "..."}
             $table->string('slug')->unique();
-            $table->text('description')->nullable();
+            $table->json('description')->nullable();
             $table->timestamps();
         });
 
-        // 2. Main Products Table (General & Dynamic Schema)
+        // 2. Main Products Table (5-Language Multi-Lang JSON Schema)
         Schema::create('products', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // Nama Produk
+            $table->json('name'); // Nama Produk JSON 5 Bahasa
             $table->string('slug')->unique();
-            $table->text('short_desc')->nullable(); // Deskripsi Singkat
-            $table->longText('full_desc')->nullable(); // Deskripsi Lengkap
+            $table->json('short_desc')->nullable(); // Deskripsi Singkat JSON 5 Bahasa
+            $table->json('full_desc')->nullable();  // Deskripsi Lengkap JSON 5 Bahasa
 
             // Atribut General Rating & Verification Badge
             $table->string('rating')->nullable(); // Contoh: "4.9/5"
-            $table->string('rating_count')->nullable(); // Contoh: "9649 plant audits"
-            $table->string('badge_text')->nullable(); // Contoh: "ISO 9001 Verified®"
+            $table->json('rating_count')->nullable(); // JSON 5 Bahasa (contoh: "9649 plant audits")
+            $table->json('badge_text')->nullable(); // JSON 5 Bahasa (contoh: "ISO 9001 Verified®")
 
             // Atribut General Harga & Catatan
-            $table->string('price_label')->nullable(); // Contoh: "SKID LEASE RATE"
+            $table->json('price_label')->nullable(); // JSON 5 Bahasa (contoh: "SKID LEASE RATE")
             $table->string('price')->nullable(); // Contoh: "Starting at $950/month"
-            $table->text('note')->nullable(); // Contoh: "A shipment typically lasts..."
+            $table->json('note')->nullable(); // JSON 5 Bahasa
 
             // Grid Pilihan Varian / Kapasitas (General JSON Array)
-            $table->json('options')->nullable(); // JSON Varian: [{"title": "N or N+1", "sub": "Under 50 m³/h"}, ...]
+            $table->json('options')->nullable(); // JSON Varian
 
-            // Section Menu Lipat Accordion Dinamis (General JSON Array: Bisa tambah berapa saja accordion!)
-            $table->json('accordions')->nullable(); // JSON: [{"title": "Size + pack details", "content": "..."}, ...]
+            // Section Menu Lipat Accordion Dinamis
+            $table->json('accordions')->nullable(); // JSON Accordions
 
             // Media & Files
             $table->string('spec_pdf_url')->nullable(); // Opsional PDF Datasheet

@@ -1,16 +1,30 @@
 import React, { useState, useEffect, useRef } from "react";
+import { AppLayout } from "../Layouts/AppLayout";
+import { SEOHead } from "@/Components/common/SEOHead";
 import { Cpu, Layers, Eye, ShieldCheck, Award, Globe, Zap, ArrowRight } from "lucide-react";
 import heroBannerImg from "@/assets/hero-banner.webp";
 import bannerFooterImg from "@/assets/banner-footer.webp";
 import { useTranslation } from "@/i18n/useTranslation";
+import { getTrans } from "@/utils/transHelper";
 
-export const AboutUsPage: React.FC = () => {
-  const { t } = useTranslation();
+export interface FaqItem {
+  id?: number;
+  question: string;
+  answer: string;
+  sort_order?: number;
+}
+
+interface AboutUsPageProps {
+  faqs?: FaqItem[];
+}
+
+export const AboutUsPage: React.FC<AboutUsPageProps> = ({ faqs = [] }) => {
+  const { t, currentLanguage } = useTranslation();
   const [parallaxY, setParallaxY] = useState<number>(0);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
   const heroRef = useRef<HTMLDivElement>(null);
 
-  const faqData = [
+  const fallbackFaqData: FaqItem[] = [
     {
       question: "DO YOU MANUFACTURE THE EQUIPMENT USED TO BUILD THE WATER TREATMENT PLANTS?",
       answer: "Yes. We're a true OEM, not a broker. We own the design, the engineering, and the supply chain for all industrial water & wastewater infrastructure.",
@@ -33,6 +47,8 @@ export const AboutUsPage: React.FC = () => {
     },
   ];
 
+  const actualFaqs = faqs && faqs.length > 0 ? faqs : fallbackFaqData;
+
   useEffect(() => {
     const handleScroll = () => {
       if (heroRef.current) {
@@ -52,38 +68,44 @@ export const AboutUsPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground pb-0 pt-3">
+    <AppLayout activeNav="About us">
+      <SEOHead
+        title="About Us — EcoReve"
+        description="Learn about EcoReve and Qingdao Topolar, leading environmental engineering OEMs for industrial wastewater treatment and zero liquid discharge."
+        url="https://ecoreve.com/about"
+      />
+      <div className="w-full min-h-screen bg-background text-foreground pb-0 pt-3">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 space-y-12">
         
-        {/* SECTION 1: TOP HERO 50% / 50% SPLIT BANNER (Layout Aligned with News Page, Styling Restored to Original About Us) */}
+        {/* SECTION 1: TOP HERO 50% / 50% SPLIT BANNER */}
         <div className="pt-2">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-stretch">
             
-            {/* Left Column Card (Hero Title & Tagline - Original Clean White Card Style Restored) */}
-            <div className="rounded-2xl bg-card border border-border/80 p-8 sm:p-10 md:p-12 flex flex-col justify-between shadow-sm hover:shadow-md transition-all min-h-[400px] sm:min-h-[460px]">
+            {/* Left Column Card */}
+            <div className="animate-element animate-delay-100 rounded-2xl bg-card border border-border/80 p-8 sm:p-10 md:p-12 flex flex-col justify-between shadow-sm hover:shadow-md transition-all min-h-[400px] sm:min-h-[460px]">
               <div className="space-y-6">
                 {/* Pill Tag Header */}
-                <span className="inline-flex items-center gap-2 rounded-full bg-[#005883]/10 dark:bg-white/10 px-4 py-1.5 text-xs font-mono font-bold text-[#005883] dark:text-white uppercase tracking-wider">
-                  <Globe className="h-3.5 w-3.5" />
-                  QINGDAO TOPOLAR / ECOREVE
-                </span>
+                <div className="animate-element animate-delay-200 inline-flex items-center gap-2 rounded-full bg-[#005883]/10 dark:bg-white/10 px-4 py-1.5 text-xs font-mono font-bold text-[#005883] dark:text-white uppercase tracking-wider">
+                  <span className="h-2 w-2 rounded-full bg-[#008193] animate-pulse" />
+                  <span>QINGDAO TOPOLAR / ECOREVE</span>
+                </div>
 
                 {/* Main Headline */}
-                <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
+                <h1 className="animate-element animate-delay-300 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.15]">
                   {t.aboutUsPage.heroTitle}
                 </h1>
               </div>
 
               {/* Subtext Description */}
-              <div className="pt-8 sm:pt-12 border-t border-border/40 mt-8">
+              <div className="animate-element animate-delay-400 pt-8 sm:pt-12 border-t border-border/40 mt-8">
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
                   {t.aboutUsPage.heroSubtitle}
                 </p>
               </div>
             </div>
 
-            {/* Right Column Hero Visual Card (Original Full-Bleed Image Card Style Restored) */}
-            <div className="rounded-2xl relative overflow-hidden shadow-lg border border-border/60 min-h-[400px] sm:min-h-[460px] group flex flex-col justify-end p-8 sm:p-10 md:p-12">
+            {/* Right Column Hero Visual Card */}
+            <div className="animate-element animate-delay-200 rounded-2xl relative overflow-hidden shadow-lg border border-border/60 min-h-[400px] sm:min-h-[460px] group flex flex-col justify-end p-8 sm:p-10 md:p-12">
               <img
                 src={heroBannerImg}
                 alt="EcoReve Industrial Water Architecture"
@@ -106,14 +128,17 @@ export const AboutUsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* SECTION 2: 50% LEFT (3 STICKY STACKING CARDS) + 50% RIGHT (DIRECT SUPPORT MEDIA CARD WITH 3 BOTTOM CARDS) */}
+        {/* SECTION 2: 50% LEFT (3 STICKY STACKING CARDS) + 50% RIGHT */}
         <div className="pt-8 space-y-12">
           
           {/* Header Title */}
-          <div className="space-y-4 max-w-3xl">
-            <p className="text-[11px] font-mono font-extrabold tracking-widest text-[#005883] dark:text-sky-400 uppercase">
-              {t.aboutUsPage.pillarsEyebrow}
-            </p>
+          <div className="reveal space-y-4 max-w-3xl">
+            <div className="inline-flex items-center gap-2 rounded-full bg-[#005883]/10 dark:bg-white/10 px-3.5 py-1 backdrop-blur-md border border-[#005883]/20 dark:border-white/20 text-xs font-semibold text-[#005883] dark:text-white shadow-xs">
+              <span className="h-2 w-2 rounded-full bg-[#008193] animate-pulse" />
+              <span className="uppercase text-[11px] tracking-wider font-bold">
+                {t.aboutUsPage.pillarsEyebrow}
+              </span>
+            </div>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-tight">
               {t.aboutUsPage.pillarsTitle}
             </h2>
@@ -122,11 +147,11 @@ export const AboutUsPage: React.FC = () => {
           {/* 50% / 50% Split Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start relative">
             
-            {/* LEFT 50% COLUMN: 3 Separated Feature Cards with Sticky Stacking Scroll Effect */}
+            {/* LEFT 50% COLUMN */}
             <div className="lg:col-span-6 space-y-6 relative">
               
               {/* Card 01 */}
-              <div className="sticky top-28 z-10 group rounded-2xl bg-card/95 backdrop-blur-md border border-border/80 p-6 sm:p-8 flex items-start gap-6 shadow-md transition-all duration-300 hover:bg-[#005883]/10 dark:hover:bg-[#005883]/20 cursor-pointer">
+              <div className="reveal sticky top-28 z-10 group rounded-2xl bg-card/95 backdrop-blur-md border border-border/80 p-6 sm:p-8 flex items-start gap-6 shadow-md transition-all duration-300 hover:bg-[#005883]/10 dark:hover:bg-[#005883]/20 cursor-pointer">
                 <span className="text-5xl sm:text-6xl font-mono font-extrabold text-[#005883] dark:text-sky-400 shrink-0 leading-none group-hover:scale-105 transition-transform">
                   01
                 </span>
@@ -141,7 +166,7 @@ export const AboutUsPage: React.FC = () => {
               </div>
 
               {/* Card 02 */}
-              <div className="sticky top-36 z-20 group rounded-2xl bg-card/95 backdrop-blur-md border border-border/80 p-6 sm:p-8 flex items-start gap-6 shadow-md transition-all duration-300 hover:bg-[#005883]/10 dark:hover:bg-[#005883]/20 cursor-pointer">
+              <div className="reveal sticky top-36 z-20 group rounded-2xl bg-card/95 backdrop-blur-md border border-border/80 p-6 sm:p-8 flex items-start gap-6 shadow-md transition-all duration-300 hover:bg-[#005883]/10 dark:hover:bg-[#005883]/20 cursor-pointer">
                 <span className="text-5xl sm:text-6xl font-mono font-extrabold text-[#005883] dark:text-sky-400 shrink-0 leading-none group-hover:scale-105 transition-transform">
                   02
                 </span>
@@ -156,7 +181,7 @@ export const AboutUsPage: React.FC = () => {
               </div>
 
               {/* Card 03 */}
-              <div className="sticky top-44 z-30 group rounded-2xl bg-card/95 backdrop-blur-md border border-border/80 p-6 sm:p-8 flex items-start gap-6 shadow-md transition-all duration-300 hover:bg-[#005883]/10 dark:hover:bg-[#005883]/20 cursor-pointer">
+              <div className="reveal sticky top-44 z-30 group rounded-2xl bg-card/95 backdrop-blur-md border border-border/80 p-6 sm:p-8 flex items-start gap-6 shadow-md transition-all duration-300 hover:bg-[#005883]/10 dark:hover:bg-[#005883]/20 cursor-pointer">
                 <span className="text-5xl sm:text-6xl font-mono font-extrabold text-[#005883] dark:text-sky-400 shrink-0 leading-none group-hover:scale-105 transition-transform">
                   03
                 </span>
@@ -172,8 +197,8 @@ export const AboutUsPage: React.FC = () => {
 
             </div>
 
-            {/* RIGHT 50% COLUMN: Sticky Direct Support Media Card with 3 Bottom Cards */}
-            <div className="lg:col-span-6 sticky top-28 self-start space-y-4">
+            {/* RIGHT 50% COLUMN */}
+            <div className="reveal lg:col-span-6 sticky top-28 self-start space-y-4">
               <div className="rounded-2xl bg-card border border-border/80 p-4 sm:p-5 flex flex-col justify-between shadow-lg space-y-4">
                 
                 {/* Top 70% Height Image Card */}
@@ -239,7 +264,7 @@ export const AboutUsPage: React.FC = () => {
       </div>
 
       {/* SECTION 3: FULL-BLEED BACKGROUND SQUARE BLUE STATS BANNER */}
-      <div className="w-full bg-[#005883] text-white py-14 sm:py-18 md:py-22 shadow-2xl mt-16 relative overflow-hidden">
+      <div className="reveal w-full bg-[#005883] text-white py-14 sm:py-18 md:py-22 shadow-2xl mt-16 relative overflow-hidden">
         {/* Top-Right Clean Concentric L-Shaped Grid Lines */}
         <div className="absolute top-0 right-0 w-[550px] h-full opacity-25 pointer-events-none z-0 hidden lg:block overflow-hidden">
           <svg className="w-full h-full" viewBox="0 0 550 320" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -333,8 +358,8 @@ export const AboutUsPage: React.FC = () => {
         </div>
       </div>
 
-      {/* SECTION 4: FAQs SECTION (PRESERVED 100%) */}
-      <div className="w-full bg-background py-16 sm:py-24 border-t border-border/40">
+      {/* SECTION 4: FAQs SECTION */}
+      <div className="reveal w-full bg-background py-16 sm:py-24 border-t border-border/40">
         <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
             
@@ -370,8 +395,11 @@ export const AboutUsPage: React.FC = () => {
 
             {/* RIGHT COLUMN: Accordion FAQ List (Matching Reference Monospace Blue Question Titles & + / − toggles) */}
             <div className="lg:col-span-7 space-y-6">
-              {faqData.map((faq, index) => {
+              {actualFaqs.map((faq, index) => {
                 const isOpen = openFaqIndex === index;
+                const questionText = getTrans(faq.question, currentLanguage);
+                const answerText = getTrans(faq.answer, currentLanguage);
+
                 return (
                   <div key={index} className="border-b border-border/70 pb-6 transition-all">
                     {/* Question Header Row */}
@@ -380,7 +408,7 @@ export const AboutUsPage: React.FC = () => {
                       className="w-full flex items-center justify-between gap-4 text-left group cursor-pointer"
                     >
                       <span className="font-mono text-xs sm:text-sm font-bold tracking-wider uppercase text-[#005883] dark:text-sky-400 group-hover:text-[#008193] transition-colors leading-relaxed pr-4">
-                        {faq.question}
+                        {questionText}
                       </span>
                       <span className="flex h-6 w-6 shrink-0 items-center justify-center text-[#005883] dark:text-sky-400 font-mono text-lg font-bold">
                         {isOpen ? "−" : "+"}
@@ -397,7 +425,7 @@ export const AboutUsPage: React.FC = () => {
                     >
                       <div className="overflow-hidden">
                         <p className="text-xs sm:text-sm text-foreground/90 font-medium leading-relaxed max-w-2xl">
-                          {faq.answer}
+                          {answerText}
                         </p>
                       </div>
                     </div>
@@ -457,6 +485,9 @@ export const AboutUsPage: React.FC = () => {
           </p>
         </div>
       </div>
-    </div>
+      </div>
+    </AppLayout>
   );
 };
+
+export default AboutUsPage;

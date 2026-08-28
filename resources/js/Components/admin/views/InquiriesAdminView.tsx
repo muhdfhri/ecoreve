@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { router } from "@inertiajs/react";
 import {
   Search,
@@ -11,8 +11,25 @@ import {
   Trash2,
   MessageSquare,
   X,
+  Filter,
+  ArrowUp,
+  ArrowDown,
+  ChevronDown,
+  Loader2,
+  Layers,
 } from "lucide-react";
 import { EmptyState } from "@/Components/ui/EmptyState";
+import { toast } from "@/Components/ui/sonner";
+import { AdminCursorPagination, CursorPaginationData } from "../AdminCursorPagination";
+import { AdminTableSkeleton } from "../AdminTableSkeleton";
+import { DataTable } from "@/Components/ui/data-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/Components/ui/select";
 
 export interface InquiryData {
   id: number;
@@ -26,28 +43,96 @@ export interface InquiryData {
 
 interface InquiriesAdminViewProps {
   inquiries?: InquiryData[];
+  inquiriesPagination?: CursorPaginationData | null;
+  filters?: {
+    sort_dir?: "asc" | "desc";
+    search?: string;
+  };
 }
 
-export const InquiriesAdminView: React.FC<InquiriesAdminViewProps> = ({ inquiries = [] }) => {
-  const [searchQuery, setSearchQuery] = useState("");
+export const InquiriesAdminView: React.FC<InquiriesAdminViewProps> = ({
+  inquiries = [],
+  inquiriesPagination = null,
+  filters = {},
+}) => {
+  const [searchQuery, setSearchQuery] = useState(filters?.search || "");
+  const [sortDir, setSortDir] = useState<"asc" | "desc">(filters?.sort_dir || "desc");
   const [filterStatus, setFilterStatus] = useState<string>("ALL");
+  const [isFetching, setIsFetching] = useState(false);
+
+  // Debounced Search Reference
+  const searchTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Modal State for View/Respond
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryData | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
+  // Auto-reset fetching state when Inertia finishes updating props
+  useEffect(() => {
+    setIsFetching(false);
+  }, [inquiries, inquiriesPagination]);
+
+  const actualInquiries = inquiries || [];
+
   // Filter inquiries by Search & Status
-  const filteredInquiries = inquiries.filter((inquiry) => {
+  const filteredInquiries = actualInquiries.filter((inquiry) => {
+    if (!inquiry) return false;
+    const name = inquiry.full_name || "";
+    const email = inquiry.work_email || "";
+    const company = inquiry.company_name || "";
+    const msg = inquiry.message || "";
+    const query = searchQuery.toLowerCase();
+
     const matchesSearch =
-      inquiry.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inquiry.work_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inquiry.company_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      inquiry.message.toLowerCase().includes(searchQuery.toLowerCase());
+      name.toLowerCase().includes(query) ||
+      email.toLowerCase().includes(query) ||
+      company.toLowerCase().includes(query) ||
+      msg.toLowerCase().includes(query);
 
     const matchesStatus = filterStatus === "ALL" || inquiry.status === filterStatus;
 
     return matchesSearch && matchesStatus;
   });
+
+  // Debounced Search Effect (300ms)
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+
+    searchTimeoutRef.current = setTimeout(() => {
+      setIsFetching(true);
+      router.get(
+        "/admin",
+        { tab: "inquiries", search: val, sort_dir: sortDir },
+        {
+          preserveState: true,
+          preserveScroll: true,
+          onFinish: () => setIsFetching(false),
+        }
+      );
+    }, 300);
+  };
+
+  // Toggle Sort by ID (ASC / DESC)
+  const handleToggleSortId = () => {
+    const nextDir = sortDir === "desc" ? "asc" : "desc";
+    setSortDir(nextDir);
+    setIsFetching(true);
+
+    router.get(
+      "/admin",
+      { tab: "inquiries", sort_dir: nextDir, search: searchQuery },
+      {
+        preserveState: true,
+        preserveScroll: true,
+        onFinish: () => setIsFetching(false),
+      }
+    );
+  };
 
   const handleUpdateStatus = (id: number, newStatus: string) => {
     router.post(`/admin/inquiries/${id}/status`, { status: newStatus }, {
@@ -55,6 +140,7 @@ export const InquiriesAdminView: React.FC<InquiriesAdminViewProps> = ({ inquirie
         if (selectedInquiry && selectedInquiry.id === id) {
           setSelectedInquiry({ ...selectedInquiry, status: newStatus as any });
         }
+        toast.success("CRM inquiry status updated successfully!");
       },
     });
   };
@@ -64,132 +150,224 @@ export const InquiriesAdminView: React.FC<InquiriesAdminViewProps> = ({ inquirie
       onSuccess: () => {
         setIsDetailOpen(false);
         setSelectedInquiry(null);
+        toast.success("Inquiry deleted from CRM!");
       },
     });
   };
 
   return (
-    <div className="space-y-6 font-sans">
-      {/* 1. TOP TOOLBAR & CONTROLS */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        {/* Search Bar */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search inquiries by name, email, or company..."
-            className="w-full pl-10 pr-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+    <div className="space-y-4 font-sans">
+      {/* 1. GAMBAR 2 REFERENCE: TOP STATUS NAVIGATION TABS BAR */}
+      <div className="border-b border-zinc-200 dark:border-zinc-800 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-6 min-w-max pb-2 pt-0.5">
+          {[
+            { key: "ALL", label: "All Inquiries", icon: Layers },
+            { key: "pending", label: "Pending", icon: null },
+            { key: "in_process", label: "In Process", icon: null },
+            { key: "closed", label: "Closed", icon: null },
+          ].map((tab) => {
+            const isActive = filterStatus === tab.key;
+            const IconComp = tab.icon;
+            return (
+              <button
+                key={tab.key}
+                type="button"
+                onClick={() => setFilterStatus(tab.key)}
+                className={`relative inline-flex items-center gap-2 text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  isActive
+                    ? "text-[#005883] dark:text-sky-400"
+                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white"
+                }`}
+              >
+                {IconComp && <IconComp className="h-4 w-4 shrink-0" />}
+                <span>{tab.label}</span>
+                {isActive && (
+                  <span className="absolute -bottom-2 left-0 right-0 h-0.5 bg-[#005883] dark:bg-sky-400 rounded-full" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 2. GAMBAR 2 REFERENCE: BOTTOM SEARCH & ACTION CONTROL BAR */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-2">
+        {/* Left Side: Active Filter Pill Badge */}
+        <div className="flex items-center gap-2">
+          {filterStatus !== "ALL" ? (
+            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#005883]/10 text-[#005883] dark:bg-sky-950/60 dark:text-sky-300 text-xs font-bold border border-[#005883]/30 shrink-0">
+              <span>Status: {filterStatus}</span>
+              <button
+                type="button"
+                onClick={() => setFilterStatus("ALL")}
+                className="hover:text-rose-500 transition-colors cursor-pointer"
+                title="Clear Filter"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+          ) : (
+            <div className="text-xs font-semibold text-zinc-400 dark:text-zinc-500">
+              Showing all inquiries ({actualInquiries.length})
+            </div>
+          )}
         </div>
 
-        {/* Status Filter */}
-        <div className="flex items-center gap-2">
-          <span className="text-xs text-zinc-400 font-medium">Status filter:</span>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="ALL">All Inquiries ({inquiries.length})</option>
-            <option value="pending">Pending</option>
-            <option value="in_process">In Process</option>
-            <option value="closed">Closed</option>
-          </select>
+        {/* Right Side: Search Input */}
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative w-full sm:w-56 shrink-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={handleSearchChange}
+              placeholder="Search..."
+              className="w-full h-8.5 pl-8.5 pr-8 rounded-xl border border-[#005883]/40 dark:border-sky-500/40 focus:border-[#005883] dark:focus:border-sky-400 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-800 dark:text-zinc-200 placeholder:text-zinc-400 focus:outline-none focus:ring-1 focus:ring-[#005883]/30 transition-all shadow-2xs"
+            />
+            {isFetching && (
+              <Loader2 className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-[#005883] dark:text-sky-400 animate-spin" />
+            )}
+          </div>
         </div>
       </div>
 
       {/* 2. DYNAMIC CONTENT AREA: TABLE OR GLOBAL EMPTY STATE */}
-      {filteredInquiries.length === 0 ? (
+      {filteredInquiries.length === 0 && !isFetching ? (
         <EmptyState
           icon={Inbox}
-          title={inquiries.length === 0 ? "No Inquiries Received Yet" : "No Matching Inquiries Found"}
+          title={actualInquiries.length === 0 ? "No Inquiries Received Yet" : "No Matching Inquiries Found"}
           description={
-            inquiries.length === 0
+            actualInquiries.length === 0
               ? "Your CRM mailbox is currently clean and empty. Inquiries submitted by clients via the contact page will automatically appear here for your review and follow-up."
               : "No inquiries matched your current search query or status filter. Try clearing the filter parameters."
           }
         />
-      ) : (
-        <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-zinc-600 dark:text-zinc-300">
-              <thead className="bg-zinc-50/80 dark:bg-zinc-800/50 text-zinc-500 dark:text-zinc-400 font-semibold border-b border-zinc-200 dark:border-zinc-800">
-                <tr>
-                  <th className="p-3.5 font-bold">Contact Name</th>
-                  <th className="p-3.5 font-bold">Company / Work Email</th>
-                  <th className="p-3.5 font-bold">Message Snippet</th>
-                  <th className="p-3.5 font-bold">Date Received</th>
-                  <th className="p-3.5 font-bold">CRM Status</th>
-                  <th className="p-3.5 font-bold text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-zinc-200/70 dark:divide-zinc-800/70">
-                {filteredInquiries.map((inquiry) => (
-                  <tr key={inquiry.id} className="hover:bg-zinc-50/70 dark:hover:bg-zinc-800/40 transition-colors">
-                    <td className="p-3.5 font-bold text-zinc-900 dark:text-white">
-                      <div>{inquiry.full_name}</div>
-                      <div className="text-[11px] font-normal text-zinc-400 flex items-center gap-1 mt-0.5">
-                        <Mail className="h-3 w-3" />
-                        {inquiry.work_email}
-                      </div>
-                    </td>
-                    <td className="p-3.5">
-                      <div className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1">
-                        <Building className="h-3 w-3 text-zinc-400" />
-                        {inquiry.company_name}
-                      </div>
-                    </td>
-                    <td className="p-3.5 font-medium text-zinc-600 dark:text-zinc-300 max-w-xs truncate">
-                      {inquiry.message}
-                    </td>
-                    <td className="p-3.5 font-mono text-zinc-500 dark:text-zinc-400">
-                      {inquiry.created_at ? new Date(inquiry.created_at).toLocaleDateString() : "Just now"}
-                    </td>
-                    <td className="p-3.5">
-                      {inquiry.status === "pending" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[11px] font-semibold">
-                          <Clock className="h-3 w-3" />
-                          Pending
-                        </span>
-                      )}
-                      {inquiry.status === "in_process" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 text-[11px] font-semibold">
-                          <CircleDot className="h-3 w-3 animate-spin" />
-                          In Process
-                        </span>
-                      )}
-                      {inquiry.status === "closed" && (
-                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-[11px] font-semibold">
-                          <CheckCircle2 className="h-3 w-3" />
-                          Closed
-                        </span>
-                      )}
-                    </td>
-                    <td className="p-3.5 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => { setSelectedInquiry(inquiry); setIsDetailOpen(true); }}
-                          className="px-3 py-1 rounded-xl bg-[#005883] hover:bg-[#003853] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
-                        >
-                          View Inquiry
-                        </button>
-                        <button
-                          onClick={() => handleDeleteInquiry(inquiry.id)}
-                          className="p-1 rounded-lg border border-rose-200 text-rose-600 hover:bg-rose-50 cursor-pointer"
-                          title="Delete Inquiry"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+      ) : isFetching ? (
+        <div className="rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 shadow-2xs overflow-hidden p-4">
+          <AdminTableSkeleton columnsCount={7} rowsCount={6} />
         </div>
+      ) : (
+        <DataTable<InquiryData, any>
+          data={filteredInquiries}
+          pagination={inquiriesPagination}
+          isFetching={isFetching}
+          onNavigate={() => setIsFetching(true)}
+          onFinish={() => setIsFetching(false)}
+          onBatchDelete={(rows) => {
+            toast.success(`Batch action: Selected ${rows.length} inquiry(s) for bulk operations.`);
+          }}
+          columns={[
+            {
+              id: "id",
+              accessorKey: "id",
+              header: ({ column }) => (
+                <button
+                  type="button"
+                  onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                  className="inline-flex items-center gap-1.5 hover:text-zinc-900 dark:hover:text-white transition-colors cursor-pointer group font-bold"
+                >
+                  <span>ID</span>
+                  {column.getIsSorted() === "desc" ? (
+                    <ArrowDown className="h-3.5 w-3.5 text-[#005883] font-extrabold" />
+                  ) : (
+                    <ArrowUp className="h-3.5 w-3.5 text-[#005883] font-extrabold" />
+                  )}
+                </button>
+              ),
+              cell: ({ row }) => <span className="font-mono text-zinc-400 font-bold">#{row.original.id}</span>,
+            },
+            {
+              id: "contact_name",
+              header: "Contact Name",
+              cell: ({ row }) => (
+                <div>
+                  <div className="font-bold text-zinc-900 dark:text-white">{row.original.full_name || "Anonymous Contact"}</div>
+                  <div className="text-[11px] font-normal text-zinc-400 flex items-center gap-1 mt-0.5 font-mono">
+                    <Mail className="h-3 w-3 shrink-0" />
+                    {row.original.work_email || "N/A"}
+                  </div>
+                </div>
+              ),
+            },
+            {
+              id: "company",
+              header: "Company / Organization",
+              cell: ({ row }) => (
+                <div className="font-semibold text-zinc-800 dark:text-zinc-200 flex items-center gap-1">
+                  <Building className="h-3 w-3 text-zinc-400 shrink-0" />
+                  {row.original.company_name || "General Client"}
+                </div>
+              ),
+            },
+            {
+              id: "message",
+              header: "Message Snippet",
+              cell: ({ row }) => (
+                <span className="font-medium text-zinc-600 dark:text-zinc-300 max-w-xs truncate block">
+                  {row.original.message || "No message content"}
+                </span>
+              ),
+            },
+            {
+              id: "date",
+              header: "Date Received",
+              cell: ({ row }) => (
+                <span className="font-mono text-zinc-500 dark:text-zinc-400">
+                  {row.original.created_at && !isNaN(Date.parse(row.original.created_at))
+                    ? new Date(row.original.created_at).toLocaleDateString()
+                    : "Recently"}
+                </span>
+              ),
+            },
+            {
+              id: "status",
+              header: "CRM Status",
+              cell: ({ row }) => (
+                <>
+                  {row.original.status === "pending" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 text-[11px] font-semibold border border-amber-200/60 dark:border-amber-800/40">
+                      <Clock className="h-3 w-3" />
+                      Pending
+                    </span>
+                  )}
+                  {row.original.status === "in_process" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400 text-[11px] font-semibold border border-blue-200/60 dark:border-blue-800/40">
+                      <CircleDot className="h-3 w-3 animate-spin" />
+                      In Process
+                    </span>
+                  )}
+                  {row.original.status === "closed" && (
+                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 text-[11px] font-semibold border border-emerald-200/60 dark:border-emerald-800/40">
+                      <CheckCircle2 className="h-3 w-3" />
+                      Closed
+                    </span>
+                  )}
+                </>
+              ),
+            },
+            {
+              id: "actions",
+              header: () => <div className="text-right">Actions</div>,
+              cell: ({ row }) => (
+                <div className="flex items-center justify-end gap-2">
+                  <button
+                    onClick={() => { setSelectedInquiry(row.original); setIsDetailOpen(true); }}
+                    className="px-3 py-1 rounded-xl bg-[#005883] hover:bg-[#003853] text-white text-xs font-bold shadow-xs transition-all cursor-pointer"
+                  >
+                    View Inquiry
+                  </button>
+                  <button
+                    onClick={() => handleDeleteInquiry(row.original.id)}
+                    className="p-1.5 rounded-lg border border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-rose-600 dark:text-rose-400 cursor-pointer transition-all"
+                    title="Delete Inquiry"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ),
+            },
+          ]}
+        />
       )}
 
       {/* 3. INQUIRY DETAIL & CRM RESPOND MODAL */}

@@ -11,28 +11,56 @@ interface AppLayoutProps {
 export const AppLayout: React.FC<AppLayoutProps> = ({ activeNav = "Home", children }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  React.useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" as ScrollBehavior });
+  }, [activeNav]);
+
+  // Global IntersectionObserver to trigger smooth entrance animations on scroll
+  React.useEffect(() => {
+    const observerCallback: IntersectionObserverCallback = (entries, observer) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("is-visible");
+          // Optionally unobserve after animating in for performance
+          observer.unobserve(entry.target);
+        }
+      });
+    };
+
+    const observer = new IntersectionObserver(observerCallback, {
+      root: null,
+      rootMargin: "0px 0px -60px 0px", // Triggers slightly before element enters view
+      threshold: 0.1,
+    });
+
+    const elements = document.querySelectorAll(".reveal, .animate-element");
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, [children]);
+
   const handleNavigate = (pageName: string) => {
-    switch (pageName) {
-      case "Home":
-        router.visit("/");
-        break;
-      case "Products":
-        router.visit("/products");
-        break;
-      case "Service":
-        router.visit("/service");
-        break;
-      case "About us":
-        router.visit("/about-us");
-        break;
-      case "News":
-        router.visit("/news");
-        break;
-      case "Contact":
-        router.visit("/contact");
-        break;
-      default:
-        router.visit("/");
+    if (!pageName) return;
+
+    const options = { preserveState: false, preserveScroll: false };
+
+    if (pageName === "Home") {
+      router.visit("/", options);
+    } else if (pageName.startsWith("Products")) {
+      router.visit("/products", options);
+    } else if (pageName.startsWith("Service")) {
+      router.visit("/service", options);
+    } else if (pageName.startsWith("About") || pageName === "About us") {
+      router.visit("/about-us", options);
+    } else if (pageName === "News") {
+      router.visit("/news", options);
+    } else if (pageName === "Contact") {
+      router.visit("/contact", options);
+    } else {
+      router.visit("/", options);
     }
   };
 

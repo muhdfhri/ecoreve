@@ -22,8 +22,5 @@ createInertiaApp({
       </LanguageProvider>
     );
   },
-  progress: {
-    color: "#005883",
-    showSpinner: true,
-  },
+  progress: false,
 });

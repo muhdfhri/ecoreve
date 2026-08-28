@@ -28,6 +28,7 @@ interface SignInPageProps {
   testimonials?: Testimonial[];
   defaultEmail?: string;
   defaultPassword?: string;
+  errors?: Record<string, string>;
   onSignIn?: (event: React.FormEvent<HTMLFormElement>) => void;
   onGoogleSignIn?: () => void;
   onResetPassword?: () => void;
@@ -36,8 +37,14 @@ interface SignInPageProps {
 
 // --- SUB-COMPONENTS ---
 
-const GlassInputWrapper = ({ children }: { children: React.ReactNode }) => (
-  <div className="rounded-2xl border border-border bg-foreground/5 backdrop-blur-sm transition-colors focus-within:border-[#005883] focus-within:bg-[#005883]/5">
+const GlassInputWrapper = ({ children, hasError }: { children: React.ReactNode; hasError?: boolean }) => (
+  <div
+    className={`rounded-2xl border backdrop-blur-sm transition-colors focus-within:border-[#005883] focus-within:bg-[#005883]/5 ${
+      hasError
+        ? "border-rose-500 bg-rose-500/5 dark:bg-rose-950/20"
+        : "border-border bg-foreground/5"
+    }`}
+  >
     {children}
   </div>
 );
@@ -62,6 +69,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
   testimonials = [],
   defaultEmail = "",
   defaultPassword = "",
+  errors = {},
   onSignIn,
   onGoogleSignIn,
   onResetPassword,
@@ -80,10 +88,10 @@ export const SignInPage: React.FC<SignInPageProps> = ({
             <h1 className="animate-element animate-delay-100 text-3xl sm:text-4xl font-bold leading-tight tracking-tight text-foreground">{title}</h1>
             <p className="animate-element animate-delay-200 text-sm text-muted-foreground">{description}</p>
 
-            <form className="space-y-4 sm:space-y-5" onSubmit={onSignIn}>
+            <form noValidate className="space-y-4 sm:space-y-5" onSubmit={onSignIn}>
               <div className="animate-element animate-delay-300">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Work Email</label>
-                <GlassInputWrapper>
+                <GlassInputWrapper hasError={!!errors.email}>
                   <input
                     name="email"
                     type="email"
@@ -94,11 +102,16 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                     required
                   />
                 </GlassInputWrapper>
+                {errors.email && (
+                  <p className="text-xs font-semibold text-rose-500 dark:text-rose-400 mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>{errors.email}</span>
+                  </p>
+                )}
               </div>
 
               <div className="animate-element animate-delay-400">
                 <label className="text-xs font-bold uppercase tracking-wider text-muted-foreground mb-1.5 block">Password</label>
-                <GlassInputWrapper>
+                <GlassInputWrapper hasError={!!errors.password}>
                   <div className="relative">
                     <input
                       name="password"
@@ -114,6 +127,11 @@ export const SignInPage: React.FC<SignInPageProps> = ({
                     </button>
                   </div>
                 </GlassInputWrapper>
+                {errors.password && (
+                  <p className="text-xs font-semibold text-rose-500 dark:text-rose-400 mt-1.5 animate-fade-in flex items-center gap-1">
+                    <span>{errors.password}</span>
+                  </p>
+                )}
               </div>
 
               <div className="animate-element animate-delay-500 flex items-center justify-between text-xs sm:text-sm">
@@ -129,17 +147,7 @@ export const SignInPage: React.FC<SignInPageProps> = ({
               </button>
             </form>
 
-            <div className="animate-element animate-delay-700 relative flex items-center justify-center my-1">
-              <span className="w-full border-t border-border"></span>
-              <span className="px-3 text-xs text-muted-foreground bg-background absolute">Or continue with</span>
-            </div>
-
-            <button type="button" onClick={onGoogleSignIn} className="animate-element animate-delay-800 w-full flex items-center justify-center gap-3 border border-border rounded-2xl py-3.5 hover:bg-secondary/60 text-sm font-semibold transition-colors cursor-pointer">
-                <GoogleIcon />
-                <span>Continue with Google</span>
-            </button>
-
-            <p className="animate-element animate-delay-900 text-center text-xs text-muted-foreground">
+            <p className="animate-element animate-delay-700 text-center text-xs text-muted-foreground pt-2">
               New to EcoReve platform? <a href="#" onClick={(e) => { e.preventDefault(); onCreateAccount?.(); }} className="text-[#005883] dark:text-[#008193] font-bold hover:underline transition-colors">Request Access</a>
             </p>
           </div>

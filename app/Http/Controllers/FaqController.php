@@ -10,14 +10,17 @@ class FaqController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'question' => 'required|string',
-            'answer' => 'required|string',
+            'question' => 'required',
+            'answer' => 'required',
             'sort_order' => 'nullable|integer',
         ]);
 
+        $questionJson = json_encode(\App\Traits\HasTranslatableFields::fillMissingTranslations($validated['question']));
+        $answerJson = json_encode(\App\Traits\HasTranslatableFields::fillMissingTranslations($validated['answer']));
+
         DB::table('faqs')->insert([
-            'question' => $validated['question'],
-            'answer' => $validated['answer'],
+            'question' => $questionJson,
+            'answer' => $answerJson,
             'sort_order' => $validated['sort_order'] ?? 1,
             'created_at' => now(),
             'updated_at' => now(),
@@ -29,14 +32,17 @@ class FaqController extends Controller
     public function update(Request $request, int $id)
     {
         $validated = $request->validate([
-            'question' => 'required|string',
-            'answer' => 'required|string',
+            'question' => 'required',
+            'answer' => 'required',
             'sort_order' => 'nullable|integer',
         ]);
 
+        $questionJson = json_encode(\App\Traits\HasTranslatableFields::fillMissingTranslations($validated['question']));
+        $answerJson = json_encode(\App\Traits\HasTranslatableFields::fillMissingTranslations($validated['answer']));
+
         DB::table('faqs')->where('id', $id)->update([
-            'question' => $validated['question'],
-            'answer' => $validated['answer'],
+            'question' => $questionJson,
+            'answer' => $answerJson,
             'sort_order' => $validated['sort_order'] ?? 1,
             'updated_at' => now(),
         ]);

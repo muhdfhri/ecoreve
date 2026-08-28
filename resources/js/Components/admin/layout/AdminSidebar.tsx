@@ -68,8 +68,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   // Logout Handler
   const handleLogout = () => {
     setIsUserMenuOpen(false);
-    // Redirect cleanly to login page
-    window.location.href = "/admin/login";
+    router.post("/admin/logout", {}, {
+      onSuccess: () => {
+        toast.info("Signed out successfully", {
+          description: "Your session has been terminated.",
+        });
+      },
+    });
   };
 
   return (
@@ -95,7 +100,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </p>
 
           <button
-            onClick={() => setActiveTab("Overview")}
+            onClick={() => router.get("/admin?tab=Overview")}
             className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "Overview"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
@@ -107,9 +112,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab("Products")}
+            onClick={() => router.get("/admin?tab=products")}
             className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === "Products"
+              activeTab === "Products" || activeTab === "products"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
                 : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
             }`}
@@ -119,9 +124,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab("Services")}
+            onClick={() => router.get("/admin?tab=services")}
             className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === "Services"
+              activeTab === "Services" || activeTab === "services"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
                 : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
             }`}
@@ -131,7 +136,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab("Inquiries")}
+            onClick={() => router.get("/admin?tab=Inquiries")}
             className={`w-full flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "Inquiries"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
@@ -155,7 +160,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </p>
 
           <button
-            onClick={() => setActiveTab("FAQs")}
+            onClick={() => router.get("/admin?tab=FAQs")}
             className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "FAQs"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
@@ -167,7 +172,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab("Offices")}
+            onClick={() => router.get("/admin?tab=Offices")}
             className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "Offices"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
@@ -179,9 +184,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab("News")}
+            onClick={() => router.get("/admin?tab=news")}
             className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-              activeTab === "News"
+              activeTab === "News" || activeTab === "news"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
                 : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
             }`}
@@ -191,7 +196,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab("Users")}
+            onClick={() => router.get("/admin?tab=Users")}
             className={`w-full flex items-center gap-3 px-2.5 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeTab === "Users"
                 ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white font-bold"
@@ -256,13 +261,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
               >
                 <User className="h-4 w-4 text-zinc-500" />
                 <span>Account Profile</span>
-              </button>
-              <button
-                onClick={() => setIsUserMenuOpen(false)}
-                className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-              >
-                <Settings className="h-4 w-4 text-zinc-500" />
-                <span>System Preferences</span>
               </button>
             </div>
 

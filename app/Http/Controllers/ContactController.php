@@ -10,7 +10,7 @@ class ContactController extends Controller
 {
     public function index(): Response
     {
-        return Inertia::render('Contact/Index', [
+        return Inertia::render('ContactPage', [
             'meta' => [
                 'title' => 'Contact Sales & Technical Support - EcoReve',
                 'description' => 'Request equipment datasheets, schedule engineering consultations, or ask for an innovation hub tour.',

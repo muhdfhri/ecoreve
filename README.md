@@ -1,113 +1,167 @@
-# 🌿 EcoReve - Environmental Protection & Wastewater Equipment Platform
+# EcoReve - Enterprise Environmental Protection & Water Treatment Engineering Platform
 
-![EcoReve Banner](src/assets/hero-banner.webp)
+**EcoReve** (Qingdao Topolar New Material Co.,Ltd. / PT EcoReve Indonesia) is an enterprise-grade, full-stack web platform and Management System engineered for industrial wastewater treatment equipment, MBR membrane filtration systems, zero liquid discharge (ZLD) plants, and environmental engineering telemetry.
 
-**EcoReve** adalah platform web modern bertaraf internasional yang berfokus pada penyediaan solusi rekayasa pengolahan air limbah industri (*Industrial Wastewater Treatment*), instrumen analisis air, sistem otomatisasi, katup/valves, dan peralatan utilitas energi ramah lingkungan.
-
----
-
-## 🎯 Gambaran Umum Proyek
-
-Aplikasi web ini dibangun dengan arsitektur **Clean, Modular, dan Scalable** yang siap digunakan untuk skala enterprise. Proyek ini mendukung **5 Bahasa** (*English, Indonesian, Malay, Chinese, Thai*) serta dirancang secara khusus **CMS-Ready** untuk mudah terhubung dengan **Backend RESTful API Laravel Admin** di masa mendatang.
+The platform is architected around a **Laravel 11** backend engine paired seamlessly with a **Server-Driven SPA via Inertia.js 3.0, React 19, and TypeScript**, fully adhering to **Option 3 Design System Rules (Natural Modern Curves)** for visual consistency across device viewports.
 
 ---
 
-## 🛠️ Technology Stack
+## Technical Stack & Architecture Specification
 
-### 🎨 Frontend Framework & UI (Saat Ini)
-- **Core Framework**: [Vite](https://vitejs.js.org/) + [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Routing**: [TanStack Router](https://tanstack.com/router)
-- **Styling & UI Components**: [Tailwind CSS v4](https://tailwindcss.com/) + [shadcn/ui](https://ui.shadcn.com/) (Primitives & Radix UI Utilities) + Custom CSS Glassmorphism
-- **Internationalization (i18n)**: Custom React i18n Context (`EN`, `ID`, `MS`, `ZH`, `TH`) dengan auto-persistence ke `localStorage`.
-- **Icons & Flags**: [Lucide React](https://lucide.dev/) + [React Country Flag](https://github.com/danielsogl/react-country-flag)
-- **Runtime & CLI**: [Bun](https://bun.sh/) (`bunx --bun shadcn@latest init`) / Node.js
+### 1. Frontend & Client-Side Architecture
+- **Core Engine**: React 19 with TypeScript strict mode, served via Inertia.js 3.0 SPA adapter.
+- **Styling Architecture**: Tailwind CSS v4 + Vanilla CSS custom glassmorphism design tokens.
+- **UI Primitives & Components**: Shadcn UI Primitives, Radix UI (Dialogs, Selects, Dropdowns), TanStack DataTable, and Lucide React Icons.
+- **Internationalization (i18n)**: Custom React i18n Engine supporting 5 languages (**English [EN]**, **Indonesian [ID]**, **Malay [MS]**, **Chinese [ZH]**, **Thai [TH]**) with persistent state synchronization.
+- **Performance & Media Optimization**: Eager/async image decoding, instant Shadcn modal preview handlers, and responsive layout math.
 
-### ⚙️ Backend (Arsitektur Masa Depan / Ready for Integration)
-- **Framework**: [Laravel 11 RESTful API](https://laravel.com/)
-- **Database**: MySQL / PostgreSQL (Model Produk, Kategori, Artikel Berita, Video, & Terjemahan CMS)
-- **Admin Panel**: Custom CMS Administrator (Mendukung operasi CRUD penuh untuk mengelola konten landing page)
+### 2. Backend & Server Engine
+- **Framework Core**: Laravel 11 running on PHP 8.2+.
+- **Database & Data Modeling**: MySQL / PostgreSQL utilizing Eloquent ORM for Products, Product Categories, Services, Service Categories, News, News Categories, Media, and Inquiries.
+- **Security & Authentication**: Custom JWT (JSON Web Token) / Session authentication layer, rate limiting, sliding inactivity timeout, and URL masking for admin portals.
+- **Media Asset Processing**: Dynamic physical storage scanner for `/assets/products/` and `/assets/news/` directories with automated metadata extraction (dimensions, filesize, mime-type, alt-text tags).
 
----
-
-## ✨ Fitur-Fitur Utama (Key Features)
-
-### 🌐 1. Dukungan Multi-Bahasa 5 Negara (i18n System)
-Dukungan penuh terjemahan bahasa instan tanpa *page reload*:
-- 🇬🇧 **English (EN)** - *Default*
-- 🇮🇩 **Bahasa Indonesia (ID)**
-- 🇲🇾 **Bahasa Melayu (MS)**
-- 🇨🇳 **简体中文 (ZH)**
-- 🇹🇭 **ภาษาไทย (TH)**
-
-### 📱 2. Header & Fullscreen Mobile Menu Overlay Responsive
-- **Pixel-Perfect Matching Header**: Animasi buka-tutup menu mobile presisi dengan transisi kanan-ke-kiri (*right-to-left swipe*).
-- **Mega Menu Dropdown**: Katalog Produk & Layanan Teknis tanpa titik bullet dengan warna teks *hover* hitam pekat yang kontras dan jelas.
-- **Kartu Footer Gelap di Overlay**: Kartu pernyataan komitmen perlindungan lingkungan EcoReve (`#1a2328`) yang disertakan di bagian bawah drawer mobile.
-
-### 🏭 3. Section Landing Page Komprehensif
-- **Hero Section**: Banner beresolusi tinggi dengan *gradient overlay* gelap, teks headline putih kontras, serta *metrics badge* (100+ Enterprise Clients, 50+ Solutions).
-- **Industrial Challenges Section**: Tab interaktif 4 tantangan utama air limbah industri.
-- **Engineering Solutions Carousel**: Carousel kartu kategori pengolahan air (*Water Treatment, Valves Automation, Utility Energy, Water Analysis, Filtration Membranes*).
-- **Featured Products Catalog**: Katalog produk unggulan dengan filter tab kategori dinamis.
-- **EcoReve Systems in Action**: Pemutar video demonstrasi teknis dengan *scrollable sidebar playlist*.
-- **Pioneering Clean Water Section**: Kartu indikator kinerja (*Recycling Rate 99.8%, 24/7 Monitoring, -35% Energy Consumption*).
-- **Global Offices Footer**: Informasi kantor pusat Tiongkok (Qingdao) dan kantor cabang Malaysia (Puchong, Selangor).
+### 3. SEO, Open Graph & Search Engine Infrastructure
+- **Google Sitelinks Schema**: Embedded JSON-LD Schema.org (`WebSite`, `Organization`, `SiteNavigationElement`, `ItemList`) explicitly mapping main Navbar routes for automated Google Search Console Sitelinks indexing.
+- **Open Graph & Twitter Cards**: Dynamic Meta Open Graph (`og:type`, `og:title`, `og:description`, `og:image`, `og:url`) and Twitter Card attributes for WhatsApp, LinkedIn, and X preview cards.
+- **Multilingual Indexing**: Multilingual `hreflang` alternate tags for EN, ID, MS, TH, and ZH.
+- **Dynamic XML Sitemap Generator**: Server-side Blade XML sitemap builder (`/sitemap.xml`) with priority weighting for products, news, and core catalog routes.
+- **Web Crawler Directives**: Pre-configured `public/robots.txt` disallowing internal admin and auth routes from search engine indexing.
 
 ---
 
-## 🏗️ Struktur Folder Proyek (Folder Architecture)
+## Comprehensive Platform Feature Breakdown
 
-```graphql
-src/
-├── assets/                    # Aset gambar (.webp, .png) & ikon lokal
-├── types/                     # Definisi Interface TypeScript (Product, Service, i18n)
-├── data/                      # Data statis & fallback mock (Navigation, Products, Problems)
-├── i18n/                      # 🌐 Sistem Multi-Bahasa
-│   ├── locales/               # Kamus terjemahan (en.ts, id.ts, ms.ts, zh.ts, th.ts)
-│   ├── LanguageContext.tsx    # State Provider Bahasa Aktif
-│   └── useTranslation.ts      # Custom Hook i18n
-├── services/                  # 🔌 Layer RESTful API Client Laravel (api.ts)
-├── components/                # 🧩 Komponen UI Modular
-│   ├── layout/                # Navbar, MobileDrawer, LanguageDropdown, Footer
-│   └── sections/              # Section Hero, Problem, Carousel, Products, Video, CleanWater
-├── routes/
-│   ├── __root.tsx
-│   └── index.tsx              # Clean Page Assembly (~70 baris kode)
-└── styles.css
+### A. Administrative Management System (CMS & CRM)
+
+#### 1. Overview & Business Intelligence Dashboard
+- **KPI Monitoring**: Real-time stats for Total Inquiries, Active Products, Engineering Services, and Published Research Articles.
+- **Engagement Trend Analytics**: Visual trend charts monitoring monthly lead inquiries.
+- **Live Activity Feed**: Real-time system log feed displaying operational updates.
+- **Recent Inquiry Snapshot**: Dedicated dashboard table for immediate client lead review.
+
+#### 2. Products Catalog Management
+- **Catalog Operations**: Complete CRUD workflows for industrial water treatment equipment, MBR membranes, and ZLD systems.
+- **Category Navigation**: Horizontal tab navigation bar featuring smooth scroll arrow controls (`ChevronLeft`/`ChevronRight`).
+- **Control Bar & Filters**: Full-width mobile search bar, active category badge pills with instant clearing, and 2-column grid button controls.
+- **Media Selector Integration**: Single-click image asset selection powered by the unified Media Library.
+- **Table Data Grid**: Interactive TanStack `DataTable` featuring ID sorting, status badges, batch deletion, and instant Shadcn UI image preview modals right next to ID columns.
+
+#### 3. Services Solution Manager
+- **Engineering Solutions**: Management of turnkey EPC execution, plant commissioning, and maintenance service records.
+- **Structured Metadata**: Technical specifications, deliverables, turnaround estimates, and metric badges.
+- **Control Bar Standard**: Uniform layout matching the Products module with category filters and search inputs.
+
+#### 4. News & Research Publishing Hub
+- **Article Publisher**: Multi-language article editor with cover image attachments, featured status toggles, read time estimates, and publication scheduling.
+- **Category Management**: Dedicated news category manager modal for grouping technical insights.
+- **Image Preview Modals**: Instant cover image viewing directly from the article table grid.
+
+#### 5. CRM Inquiry Center
+- **Lead Pipeline**: Client inquiry records submitted via public contact forms.
+- **Workflow Status Stages**: Real-time status switching (*Pending*, *In Process*, *Closed*).
+- **Filtering & Search**: Deep search capabilities across contact names, company names, work emails, and message snippets.
+- **Interactive Details Modal**: Deep-dive lead response modal with complete client requirement displays.
+
+#### 6. Dynamic Media Library Engine
+- **Folder Categorization Sub-Tabs**: Organized asset tabs (*All Media*, *Products Assets*, *News Assets*).
+- **Physical Sync**: Dynamic scanning of `/assets/products/*.webp` and `/assets/news/*.webp` files into the `media` database table.
+- **Metadata Management**: Live file size calculation, dimension checks, mime-type tagging, and Alt Text editing.
+- **Instant Preview**: Shadcn UI Dialog preview modal with zero-delay rendering (`duration-75`).
+
+#### 7. Command Palette & Global Accessibility
+- **Quick Create Drawer**: Keyboard shortcut drawer (`Alt+P`, `Alt+S`, `Alt+N`, `Alt+O`, `Alt+U`, `Alt+1..5`).
+- **Global Key Listeners**: Instant navigation to creation forms and theme toggles from anywhere within the admin panel.
+
+---
+
+### B. Public Client Portal
+
+#### 1. Responsive Multi-Language Header & Navigation
+- **Mega Menu Dropdowns**: Multi-column product and service category dropdowns with custom technical icons.
+- **Mobile Menu Overlay**: Smooth right-to-left fullscreen mobile menu drawer with dark commitment cards (`#1a2328`).
+- **Language Switcher**: Persistent 5-language selector with country flags.
+
+#### 2. Interactive Products & Solutions Catalog
+- **Multi-Filter System**: Instant filtering by category, target industry, and search keywords.
+- **View Modes**: Toggle between Grid view and List view formats.
+- **Technical Specification Modals**: Full technical parameter breakdown popups with PDF datasheet request triggers.
+
+#### 3. Engineering Services & Telemetry Presentation
+- **Turnkey Breakdown**: Visual service process steps, key metrics, and deliverables.
+- **FAQ Accordion**: Expandable technical FAQ accordions with smooth CSS grid height animations.
+
+#### 4. News & Research Publication
+- **Featured Articles**: Hero article banner showcasing featured engineering research.
+- **Category Filtering**: Instant article filtering by news categories (*Partnership*, *Research*, *Funding*, *Technology*).
+- **Article Detail View**: Deep-reading article layout with author bio metadata and publication dates.
+
+#### 5. Contact & Inquiry Submission
+- **CRM Lead Form**: 2-column split layout with direct inquiry submission to the admin CRM center.
+- **Location Information**: Headquarters and regional office details.
+
+---
+
+## Detailed Directory Architecture
+
+```
+ecoreve/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── AdminAuthController.php   # Admin Login & Auth Session
+│   │   │   ├── HomeController.php        # Public Landing Controller
+│   │   │   ├── MediaController.php       # Media Library API Endpoint
+│   │   │   ├── NewsController.php        # News CRUD Controller
+│   │   │   ├── ProductController.php     # Products CRUD Controller
+│   │   │   └── ServiceController.php     # Services CRUD Controller
+│   │   └── Middleware/
+│   │       ├── HandleInertiaRequests.php # Shared Inertia Props
+│   │       └── JwtAdminAuth.php          # Admin Protection Middleware
+│   └── Models/                           # Eloquent Models (Media, Product, News, Inquiry)
+├── database/
+│   ├── migrations/                       # Table Schemas (media, products, news, inquiries)
+│   └── seeders/                          # Seeders (MediaSeeder, ProductSeeder, NewsSeeder)
+├── public/
+│   ├── assets/                           # Physical Assets
+│   │   ├── news/                         # News Image Assets
+│   │   └── products/                     # Product WebP Assets (96 Items)
+│   ├── robots.txt                        # Search Engine Directives
+│   └── favicon.ico                       # Website Favicon
+├── resources/
+│   ├── css/
+│   │   └── app.css                       # Design System Tokens & Utility Classes
+│   ├── js/
+│   │   ├── Components/
+│   │   │   ├── admin/                    # Admin Views, Dashboards, Quick Palette
+│   │   │   │   ├── media/                # MediaPickerModal, ImageSelectorInput, ImageViewerModal
+│   │   │   │   └── views/                # ProductsAdminView, NewsAdminView, ServicesAdminView, InquiriesAdminView
+│   │   │   ├── common/                   # SEOHead.tsx Reusable Meta Component
+│   │   │   ├── layout/                   # Navbar, Footer, LanguageDropdown, MobileDrawer
+│   │   │   ├── sections/                 # Landing Page Section Components
+│   │   │   └── ui/                       # Shadcn Primitives (Dialog, Select, DataTable)
+│   │   ├── i18n/                         # 5-Language Dictionaries (en, id, ms, zh, th)
+│   │   ├── Pages/                        # Public Pages & Admin CRUD Form Pages
+│   │   ├── types/                        # TypeScript Interfaces & Types
+│   │   └── utils/                        # Helper Utilities (transHelper, etc.)
+│   └── views/
+│       ├── app.blade.php                 # Root HTML & Google Sitelinks JSON-LD Schema
+│       └── sitemap.blade.php             # Dynamic XML Sitemap Template
+└── routes/
+    └── web.php                           # Application Web Routes & API Endpoints
 ```
 
 ---
 
-## 🚀 Cara Menjalankan Proyek Secara Lokal
+## Design System Standard (Option 3 - Natural Modern Curves)
 
-1. **Clone Repository**:
-   ```bash
-   git clone https://github.com/muhdfhri/ecoreve.git
-   cd ecoreve
-   ```
-
-2. **Install Dependensi**:
-   ```bash
-   bun install
-   # atau menggunakan npm / pnpm / yarn:
-   # npm install
-   ```
-
-3. **Jalankan Server Development**:
-   ```bash
-   bun dev
-   # atau:
-   # npm run dev
-   ```
-   Aplikasi akan berjalan di `http://localhost:3000` (atau port yang ditunjukkan di terminal).
-
-4. **Build untuk Produksi**:
-   ```bash
-   bun run build
-   ```
+All components strictly comply with the **Option 3 Design System Rules**:
+1. **Container Radius**: Primary Cards, Modals, Banner Containers, & Sidebars use `rounded-2xl` (16px) or max `rounded-3xl` (24px for major hero banners).
+2. **Buttons & Inputs Radius**: Form Inputs, Select Dropdowns, Action Buttons, & Interactive Cards use `rounded-xl` (12px) or `rounded-lg` (8px). Floating Navigation Bar uses standard `rounded-full`.
+3. **Outlines & Borders**: Search forms and text inputs use clean, natural black border outlines (`border-2 border-black/80 dark:border-white/80 focus:border-black dark:focus:border-white`) without artificial drop shadows (`shadow-none` / natural flat layout).
 
 ---
 
-## 📜 Lisensi & Copyright
+## License & Intellectual Property
 
-© 2026 **Qingdao Topolar New Material Co.,Ltd. / EcoReve Environmental Equipment**. All rights reserved.
+Copyright © 2026 **Qingdao Topolar New Material Co.,Ltd.**. All rights reserved.

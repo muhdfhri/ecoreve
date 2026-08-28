@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { usePage, router } from "@inertiajs/react";
+import { Toaster, toast } from "@/Components/ui/sonner";
 import { AdminLayout } from "@/Components/admin/layout/AdminLayout";
 import { AdminTab } from "@/Components/admin/layout/AdminSidebar";
 import { OverviewView } from "@/Components/admin/views/OverviewView";
@@ -12,32 +14,83 @@ import { UsersAdminView } from "@/Components/admin/views/UsersAdminView";
 import { QuickCreateCommandPalette } from "@/Components/admin/QuickCreateCommandPalette";
 
 export default function Dashboard({
+  overviewStats = {},
+  trendData = {},
+  latestActivityFeed = [],
+  recentInquiriesList = [],
   users = [],
+  usersPagination = null,
   authAdmin,
   products = [],
+  productsPagination = null,
   services = [],
+  servicesPagination = null,
   faqs = [],
+  faqsPagination = null,
   offices = [],
+  officesPagination = null,
   news = [],
+  newsPagination = null,
   inquiries = [],
+  inquiriesPagination = null,
   productCategories = [],
   serviceCategories = [],
   newsCategories = [],
+  filters = {},
 }: {
+  overviewStats?: any;
+  trendData?: any;
+  latestActivityFeed?: any[];
+  recentInquiriesList?: any[];
   users?: any[];
+  usersPagination?: any;
   authAdmin?: any;
   products?: any[];
+  productsPagination?: any;
   services?: any[];
+  servicesPagination?: any;
   faqs?: any[];
+  faqsPagination?: any;
   offices?: any[];
+  officesPagination?: any;
   news?: any[];
+  newsPagination?: any;
   inquiries?: any[];
+  inquiriesPagination?: any;
   productCategories?: any[];
   serviceCategories?: any[];
   newsCategories?: any[];
+  filters?: any;
 }) {
-  const [activeTab, setActiveTab] = useState<AdminTab>("Overview");
+  const queryParams = new URLSearchParams(window.location.search);
+  const tabFromUrl = queryParams.get("tab") as AdminTab | null;
+
+  const [activeTab, setActiveTab] = useState<AdminTab>(tabFromUrl || "Overview");
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const { flash } = usePage<any>().props;
+
+  useEffect(() => {
+    if (tabFromUrl) {
+      const normalized = tabFromUrl.toLowerCase();
+      if (normalized === "products") setActiveTab("Products");
+      else if (normalized === "services") setActiveTab("Services");
+      else if (normalized === "news") setActiveTab("News");
+      else if (normalized === "overview") setActiveTab("Overview");
+      else if (normalized === "inquiries") setActiveTab("Inquiries");
+      else if (normalized === "faqs") setActiveTab("FAQs");
+      else if (normalized === "offices") setActiveTab("Offices");
+      else if (normalized === "users") setActiveTab("Users");
+    }
+  }, [tabFromUrl]);
+
+  useEffect(() => {
+    if (flash?.success) {
+      toast.success(flash.success);
+    }
+    if (flash?.error) {
+      toast.error(flash.error);
+    }
+  }, [flash]);
 
   // Global Ctrl+K / Cmd+K listener
   React.useEffect(() => {
@@ -54,21 +107,76 @@ export default function Dashboard({
   const renderActiveView = () => {
     switch (activeTab) {
       case "Overview":
-        return <OverviewView />;
+        return (
+          <OverviewView
+            overviewStats={overviewStats}
+            trendData={trendData}
+            latestActivityFeed={latestActivityFeed}
+            recentInquiriesList={recentInquiriesList}
+          />
+        );
       case "Products":
-        return <ProductsAdminView products={products} productCategories={productCategories} />;
+      case "products" as any:
+        return (
+          <ProductsAdminView
+            products={products}
+            productCategories={productCategories}
+            productsPagination={productsPagination}
+            filters={filters}
+          />
+        );
       case "Services":
-        return <ServicesAdminView services={services} serviceCategories={serviceCategories} />;
+      case "services" as any:
+        return (
+          <ServicesAdminView
+            services={services}
+            serviceCategories={serviceCategories}
+            servicesPagination={servicesPagination}
+            filters={filters}
+          />
+        );
       case "Inquiries":
-        return <InquiriesAdminView inquiries={inquiries} />;
+        return (
+          <InquiriesAdminView
+            inquiries={inquiries}
+            inquiriesPagination={inquiriesPagination}
+            filters={filters}
+          />
+        );
       case "FAQs":
-        return <FaqsAdminView faqs={faqs} />;
+        return (
+          <FaqsAdminView
+            faqs={faqs}
+            faqsPagination={faqsPagination}
+            filters={filters}
+          />
+        );
       case "Offices":
-        return <OfficesAdminView offices={offices} />;
+        return (
+          <OfficesAdminView
+            offices={offices}
+            officesPagination={officesPagination}
+            filters={filters}
+          />
+        );
       case "News":
-        return <NewsAdminView news={news} newsCategories={newsCategories} />;
+      case "news" as any:
+        return (
+          <NewsAdminView
+            news={news}
+            newsCategories={newsCategories}
+            newsPagination={newsPagination}
+            filters={filters}
+          />
+        );
       case "Users":
-        return <UsersAdminView users={users} />;
+        return (
+          <UsersAdminView
+            users={users}
+            usersPagination={usersPagination}
+            filters={filters}
+          />
+        );
       default:
         return <OverviewView />;
     }
@@ -89,7 +197,11 @@ export default function Dashboard({
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         setActiveTab={setActiveTab}
+        onOpenCreateProduct={() => router.get("/admin/products/create")}
+        onOpenCreateService={() => router.get("/admin/services/create")}
+        onOpenCreateNews={() => router.get("/admin/news/create")}
       />
+      <Toaster position="bottom-right" richColors />
     </>
   );
 }

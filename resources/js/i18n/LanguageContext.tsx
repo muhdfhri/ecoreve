@@ -16,12 +16,14 @@ const dictionaries: Record<LanguageCode, Dictionary> = {
 
 interface LanguageContextType {
   language: LanguageCode;
+  currentLanguage: string;
   setLanguage: (lang: LanguageCode) => void;
   t: Dictionary;
 }
 
 export const LanguageContext = createContext<LanguageContextType>({
   language: "EN",
+  currentLanguage: "en",
   setLanguage: () => {},
   t: en,
 });
@@ -42,9 +44,10 @@ export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const t = dictionaries[language] || en;
+  const currentLanguage = language.toLowerCase();
 
   return (
-    <LanguageContext.Provider value={{ language, setLanguage, t }}>
+    <LanguageContext.Provider value={{ language, currentLanguage, setLanguage, t }}>
       {children}
     </LanguageContext.Provider>
   );

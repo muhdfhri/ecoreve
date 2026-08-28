@@ -1,19 +1,27 @@
 import React from "react";
-import { Plus, Menu } from "lucide-react";
+import { Plus, Menu, LayoutGrid, ChevronRight } from "lucide-react";
+import { Link } from "@inertiajs/react";
+
+export interface BreadcrumbItem {
+  label: string;
+  href?: string;
+}
 
 interface AdminHeaderProps {
   title: string;
+  breadcrumbs?: BreadcrumbItem[];
   onQuickCreate?: () => void;
   onToggleMobileSidebar?: () => void;
 }
 
 export const AdminHeader: React.FC<AdminHeaderProps> = ({
   title,
+  breadcrumbs,
   onQuickCreate,
   onToggleMobileSidebar,
 }) => {
   return (
-    <header className="h-16 px-4 sm:px-8 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-900 shrink-0 font-sans">
+    <header className="h-16 px-3 sm:px-4 lg:px-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-white dark:bg-zinc-900 shrink-0 font-sans">
       <div className="flex items-center gap-3">
         {/* Mobile Sidebar Hamburger Toggle */}
         <button
@@ -24,8 +32,34 @@ export const AdminHeader: React.FC<AdminHeaderProps> = ({
           <Menu className="h-5 w-5" />
         </button>
 
-        <h1 className="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-white">
-          {title}
+        {/* Clean Breadcrumb Navigation */}
+        <h1 className="text-lg sm:text-xl font-bold tracking-tight text-zinc-900 dark:text-white capitalize flex items-center gap-2">
+          {breadcrumbs && breadcrumbs.length > 0 ? (
+            breadcrumbs.map((item, idx) => {
+              const isLast = idx === breadcrumbs.length - 1;
+              return (
+                <React.Fragment key={idx}>
+                  {idx > 0 && <span className="text-zinc-400 dark:text-zinc-600 font-normal">/</span>}
+                  {item.href && !isLast ? (
+                    <Link
+                      href={item.href}
+                      className="text-zinc-400 dark:text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors font-semibold"
+                    >
+                      {item.label}
+                    </Link>
+                  ) : isLast ? (
+                    <span className="text-zinc-900 dark:text-white font-bold">
+                      {item.label}
+                    </span>
+                  ) : (
+                    <span>{item.label}</span>
+                  )}
+                </React.Fragment>
+              );
+            })
+          ) : (
+            <span>{title}</span>
+          )}
         </h1>
       </div>
 

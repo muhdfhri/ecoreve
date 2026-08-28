@@ -66,6 +66,13 @@ Thumbs.db
 *.sln
 *.sw?
 
-# Agent & AI tools temp data
+# Scratch scripts, temporary seeder generators, and test JSONs
+build_seeder.js
+make_seeder.mjs
+json_products.json
+
+# Agent & AI tools temp data & artifacts
 .gemini
 .antigravity
+.brain
+.system_generated

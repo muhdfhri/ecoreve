@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { AdminSidebar, AdminTab } from "./AdminSidebar";
-import { AdminHeader } from "./AdminHeader";
+import { AdminHeader, BreadcrumbItem } from "./AdminHeader";
 import { X } from "lucide-react";
+import { Toaster } from "@/Components/ui/sonner";
 
 interface AdminLayoutProps {
   activeTab: AdminTab;
   setActiveTab: (tab: AdminTab) => void;
+  breadcrumbs?: BreadcrumbItem[];
   children: React.ReactNode;
   onQuickCreate?: () => void;
   authAdmin?: any;
@@ -14,6 +16,7 @@ interface AdminLayoutProps {
 export const AdminLayout: React.FC<AdminLayoutProps> = ({
   activeTab,
   setActiveTab,
+  breadcrumbs,
   children,
   onQuickCreate,
   authAdmin,
@@ -58,15 +61,18 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({
         {/* Top Header */}
         <AdminHeader
           title={activeTab}
+          breadcrumbs={breadcrumbs}
           onQuickCreate={onQuickCreate}
           onToggleMobileSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
         />
 
         {/* Dynamic Body Content */}
-        <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px]">
+        <div className="px-3 sm:px-4 lg:px-6 py-6 w-full max-w-full flex-1">
           {children}
         </div>
       </main>
+
+      <Toaster />
     </div>
   );
 };

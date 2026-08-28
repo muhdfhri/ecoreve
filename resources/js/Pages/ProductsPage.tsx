@@ -1,4 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
+import { router } from "@inertiajs/react";
+import { AppLayout } from "../Layouts/AppLayout";
+import { SEOHead } from "@/Components/common/SEOHead";
 import {
   Search,
   Filter,
@@ -30,6 +33,7 @@ import newsBgMonochromeImg from "@/assets/news-bg-monochrome.png";
 import { ProductDetailView } from "@/components/products/ProductDetailView";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/i18n/useTranslation";
+import { getTrans } from "@/utils/transHelper";
 import {
   Pagination,
   PaginationContent,
@@ -41,20 +45,43 @@ import {
 } from "@/components/ui/pagination";
 
 export interface ProductItem {
-  id: string;
+  id: string | number;
+  slug?: string;
   name: string;
   category: string;
   categoryTitle: string;
   industry: string;
   description: string;
+  fullDesc?: string;
+  rating?: string;
+  ratingCount?: string;
+  badgeText?: string;
+  priceLabel?: string;
+  price?: string;
+  note?: string;
+  options?: any;
+  accordions?: any;
+  galleryImages?: string[];
   specs: { label: string; value: string }[];
   image: string;
   inStock: boolean;
   featured?: boolean;
 }
 
-export const ProductsPage: React.FC = () => {
-  const { t } = useTranslation();
+interface ProductsPageProps {
+  products?: any[];
+  categories?: any[];
+  slug?: string;
+  selectedProduct?: any;
+}
+
+export const ProductsPage: React.FC<ProductsPageProps> = ({
+  products = [],
+  categories = [],
+  slug,
+  selectedProduct,
+}) => {
+  const { t, currentLanguage } = useTranslation();
   // Hero Scroll Progress for Animated Line Graphic
   const heroRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
@@ -67,12 +94,51 @@ export const ProductsPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isPageLoading, setIsPageLoading] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+  
+  // Read category query param from URL on initial load (e.g. /products?category=water-treatment)
+  const initialCategoryParam = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("category");
+  const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>(
+    initialCategoryParam ? [initialCategoryParam] : []
+  );
+
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("category");
+    if (param) {
+      setSelectedCategoryIds([param]);
+    }
+  }, [typeof window !== "undefined" ? window.location.search : ""]);
+  
   const [selectedIndustryNames, setSelectedIndustryNames] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"name" | "category">("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeModalProduct, setActiveModalProduct] = useState<ProductItem | null>(null);
-  const [selectedDetailProduct, setSelectedDetailProduct] = useState<ProductItem | null>(null);
+
+  // Parse selectedProduct if provided from URL route
+  const formattedSelectedProduct: ProductItem | null = selectedProduct
+    ? {
+        id: selectedProduct.id || selectedProduct.slug,
+        slug: selectedProduct.slug,
+        name: getTrans(selectedProduct.name, currentLanguage),
+        category: selectedProduct.category_slug || "water-treatment",
+        categoryTitle: getTrans(selectedProduct.category_title, currentLanguage) || "Water Treatment Series",
+        industry: "Chemical & Energy",
+        description: getTrans(selectedProduct.short_desc || selectedProduct.full_desc, currentLanguage),
+        fullDesc: getTrans(selectedProduct.full_desc || selectedProduct.short_desc, currentLanguage),
+        rating: selectedProduct.rating || "4.9/5",
+        ratingCount: getTrans(selectedProduct.rating_count, currentLanguage) || "",
+        badgeText: getTrans(selectedProduct.badge_text, currentLanguage) || "",
+        priceLabel: getTrans(selectedProduct.price_label, currentLanguage) || "",
+        price: selectedProduct.price || "",
+        note: getTrans(selectedProduct.note, currentLanguage) || "",
+        options: typeof selectedProduct.options === "string" ? JSON.parse(selectedProduct.options || "[]") : selectedProduct.options,
+        accordions: typeof selectedProduct.accordions === "string" ? JSON.parse(selectedProduct.accordions || "[]") : selectedProduct.accordions,
+        galleryImages: (typeof selectedProduct.gallery_images === "string" ? JSON.parse(selectedProduct.gallery_images || "[]") : (selectedProduct.gallery_images || [])).map((img: string) => img ? img.replace('/storage/media/products/', '/assets/products/') : img),
+        specs: [],
+        image: selectedProduct.image_url ? selectedProduct.image_url.replace('/storage/media/products/', '/assets/products/') : heroBannerImg,
+        inStock: true,
+        featured: Boolean(selectedProduct.is_featured),
+      }
+    : null;
 
   // Accordion Open/Closed States
   const [openAccordions, setOpenAccordions] = useState<{ [key: string]: boolean }>({
@@ -101,8 +167,8 @@ export const ProductsPage: React.FC = () => {
     );
   };
 
-  // Product Catalog Data
-  const productsData: ProductItem[] = [
+  // Product Catalog Fallback Data
+  const fallbackRawProductsData = [
     {
       id: "demin-plant",
       name: "Demineralization Plant (Anion & Cation)",
@@ -530,14 +596,75 @@ export const ProductsPage: React.FC = () => {
     },
   ];
 
-  // Categories List
-  const categoriesList = [
-    { id: "water-treatment", name: "Water Treatment Series", count: productsData.filter((p) => p.category === "water-treatment").length },
-    { id: "wastewater-pretreatment", name: "Wastewater Pre-Treatment", count: productsData.filter((p) => p.category === "wastewater-pretreatment").length },
-    { id: "valves-fittings", name: "Valves & Fittings", count: productsData.filter((p) => p.category === "valves-fittings").length },
-    { id: "measurement-instruments", name: "Measurement Instruments", count: productsData.filter((p) => p.category === "measurement-instruments").length },
-    { id: "automation-sensors", name: "Automation & Sensors", count: productsData.filter((p) => p.category === "automation-sensors").length },
-  ];
+  const fallbackProductsData: ProductItem[] = fallbackRawProductsData.map((p) => ({
+    ...p,
+    name: getTrans(p.name, currentLanguage),
+    description: getTrans(p.description, currentLanguage),
+    categoryTitle: getTrans(p.categoryTitle, currentLanguage),
+  }));
+
+  // Map DB products to ProductItem structure
+  const productsData: ProductItem[] = products && products.length > 0
+    ? products.map((p: any, idx: number) => {
+        let parsedOptions = p.options;
+        if (typeof p.options === "string") {
+          try { parsedOptions = JSON.parse(p.options); } catch (e) { parsedOptions = []; }
+        }
+
+        let parsedAccordions = p.accordions;
+        if (typeof p.accordions === "string") {
+          try { parsedAccordions = JSON.parse(p.accordions); } catch (e) { parsedAccordions = []; }
+        }
+
+        let parsedGallery = p.gallery_images;
+        if (typeof p.gallery_images === "string") {
+          try { parsedGallery = JSON.parse(p.gallery_images); } catch (e) { parsedGallery = []; }
+        }
+
+        return {
+          id: p.id || p.slug,
+          slug: p.slug,
+          name: getTrans(p.name, currentLanguage),
+          category: p.category_slug || (p.category_title ? getTrans(p.category_title, currentLanguage).toLowerCase().replace(/\s+/g, '-') : "water-treatment"),
+          categoryTitle: getTrans(p.category_title, currentLanguage) || "Water Treatment Series",
+          industry: "Chemical & Energy",
+          description: getTrans(p.short_desc || p.full_desc, currentLanguage),
+          fullDesc: getTrans(p.full_desc || p.short_desc, currentLanguage),
+          rating: p.rating || "4.9/5",
+          ratingCount: getTrans(p.rating_count, currentLanguage) || "",
+          badgeText: getTrans(p.badge_text, currentLanguage) || "",
+          priceLabel: getTrans(p.price_label, currentLanguage) || "",
+          price: p.price || "",
+          note: getTrans(p.note, currentLanguage) || "",
+          options: parsedOptions,
+          accordions: parsedAccordions,
+          galleryImages: parsedGallery,
+          specs: [
+            { label: "Capacity", value: "50 - 500 m³/h" },
+            { label: "Purity Conductivity", value: "< 0.1 µS/cm" },
+            { label: "Control System", value: "Siemens S7-1500 PLC" },
+          ],
+          image: p.image_url || (idx % 2 === 0 ? heroBannerImg : heroFooterImg),
+          inStock: true,
+          featured: Boolean(p.is_featured),
+        };
+      })
+    : fallbackProductsData;
+
+  // Categories List (from DB or fallback)
+  const categoriesList = categories && categories.length > 0
+    ? categories.map((c: any) => ({
+        id: c.slug || getTrans(c.name, currentLanguage).toLowerCase().replace(/\s+/g, '-'),
+        name: getTrans(c.name, currentLanguage),
+        count: productsData.filter((p) => p.category === (c.slug || getTrans(c.name, currentLanguage).toLowerCase().replace(/\s+/g, '-')) || p.categoryTitle === getTrans(c.name, currentLanguage)).length,
+      }))
+    : [
+        { id: "water-treatment", name: "Water Treatment Series", count: productsData.filter((p) => p.category === "water-treatment").length },
+        { id: "wastewater-pretreatment", name: "Wastewater Pre-Treatment", count: productsData.filter((p) => p.category === "wastewater-pretreatment").length },
+        { id: "valves-fittings", name: "Valves & Fittings", count: productsData.filter((p) => p.category === "valves-fittings").length },
+        { id: "measurement-instruments", name: "Measurement Instruments", count: productsData.filter((p) => p.category === "measurement-instruments").length },
+        { id: "automation-sensors", name: "Automation & Sensors", count: productsData.filter((p) => p.category === "automation-sensors").length },
+      ];
 
   // Industries List
   const industryList = [
@@ -633,17 +760,22 @@ export const ProductsPage: React.FC = () => {
   };
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground pb-20">
-      
-      {/* SECTION 1: FULL-BLEED CORPORATE BLUE HERO WITH CANTOR8 STEPPED ANIMATED LINE */}
-      <div
-        ref={heroRef}
-        className={`w-full bg-[#005883] text-white -mt-20 sm:-mt-24 md:-mt-28 px-4 sm:px-6 md:px-8 relative overflow-hidden transition-all duration-300 ${
-          selectedDetailProduct
-            ? "pt-24 sm:pt-28 md:pt-32 pb-8 sm:pb-12"
-            : "pt-28 sm:pt-32 md:pt-40 pb-16 sm:pb-24"
-        }`}
-      >
+    <AppLayout activeNav="Products">
+      <SEOHead
+        title="Products & Solutions — EcoReve"
+        description="Explore EcoReve's comprehensive industrial wastewater treatment equipment, MBR membranes, zero liquid discharge (ZLD) plants, and automated dosing skids."
+        url="https://ecoreve.com/products"
+      />
+      <div className="w-full min-h-screen bg-background text-foreground pb-20">
+        {/* SECTION 1: FULL-BLEED CORPORATE BLUE HERO WITH CANTOR8 STEPPED ANIMATED LINE */}
+        <div
+          ref={heroRef}
+          className={`w-full bg-[#005883] text-white -mt-20 sm:-mt-24 md:-mt-28 px-4 sm:px-6 md:px-8 relative overflow-hidden transition-all duration-300 ${
+            formattedSelectedProduct
+              ? "pt-24 sm:pt-28 md:pt-32 pb-8 sm:pb-12"
+              : "pt-28 sm:pt-32 md:pt-40 pb-16 sm:pb-24"
+          }`}
+        >
         {/* Deep Corporate Blue Base */}
         <div className="absolute inset-0 bg-[#005883] pointer-events-none z-0" />
 
@@ -657,7 +789,7 @@ export const ProductsPage: React.FC = () => {
         </div>
 
         {/* Clean, Crisp Cantor8 Stepped SVG Path Line (Hidden in Detail View Mode) */}
-        {!selectedDetailProduct && (
+        {!formattedSelectedProduct && (
           <svg
             className="absolute inset-0 w-full h-full pointer-events-none z-10 hidden sm:block"
             preserveAspectRatio="none"
@@ -688,25 +820,25 @@ export const ProductsPage: React.FC = () => {
         )}
 
         {/* Hero Content Container */}
-        {selectedDetailProduct ? (
+        {formattedSelectedProduct ? (
           <div className="mx-auto max-w-[1440px] relative z-20 space-y-8 pt-2 sm:pt-4">
             
             {/* BRAND TITLE & HEADLINE (100% Match to Reference Screenshot) */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-2">
               {/* Left Col: Huge EcoReve Brand Name + Monospace Subtitle */}
               <div className="lg:col-span-6 space-y-4">
-                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-none">
-                  EcoReve
+                <h1 className="animate-element animate-delay-100 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-none">
+                  {t.productsUI.heroBrand || "EcoReve"}
                 </h1>
-                <p className="text-xs font-mono font-bold tracking-widest text-white/70 uppercase">
-                  QINGDAO TOPOLAR INDUSTRIAL WATER SYSTEMS
+                <p className="animate-element animate-delay-200 text-xs font-mono font-bold tracking-widest text-white/70 uppercase">
+                  {t.productsUI.heroSubtitle || "QINGDAO TOPOLAR INDUSTRIAL WATER SYSTEMS"}
                 </p>
               </div>
 
               {/* Right Col: Hero Subheadline Paragraph */}
               <div className="lg:col-span-6 pt-2 lg:pt-4 space-y-6">
-                <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight max-w-xl">
-                  Working at the intersection of high-purity water purification, zero liquid discharge, and autonomous plant telemetry.
+                <p className="animate-element animate-delay-300 text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight max-w-xl">
+                  {t.productsUI.heroHeadline || "Working at the intersection of high-purity water purification, zero liquid discharge, and autonomous plant telemetry."}
                 </p>
               </div>
             </div>
@@ -714,27 +846,27 @@ export const ProductsPage: React.FC = () => {
         ) : (
           <div className="mx-auto max-w-[1440px] relative z-20 space-y-24 sm:space-y-32">
             
-            {/* SECTION 1 TOP: Brand Title & Headline (Cantor8 Image 1 Layout) */}
+            {/* SECTION 1 TOP: Brand Title & Headline */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-4">
               {/* Left Col: Huge Brand Name */}
               <div className="lg:col-span-6 space-y-4">
-                <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-none">
-                  EcoReve
+                <h1 className="animate-element animate-delay-200 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-none">
+                  {t.productsUI.heroBrand || "EcoReve"}
                 </h1>
-                <p className="text-xs font-mono font-bold tracking-widest text-white/70 uppercase">
-                  QINGDAO TOPOLAR INDUSTRIAL WATER SYSTEMS
+                <p className="animate-element animate-delay-300 text-xs font-mono font-bold tracking-widest text-white/70 uppercase">
+                  {t.productsUI.heroSubtitle || "QINGDAO TOPOLAR INDUSTRIAL WATER SYSTEMS"}
                 </p>
               </div>
 
               {/* Right Col: Hero Subheadline Paragraph */}
               <div className="lg:col-span-6 pt-2 lg:pt-4 space-y-6">
-                <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight max-w-xl">
-                  Working at the intersection of high-purity water purification, zero liquid discharge, and autonomous plant telemetry.
+                <p className="animate-element animate-delay-400 text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight max-w-xl">
+                  {t.productsUI.heroHeadline || "Working at the intersection of high-purity water purification, zero liquid discharge, and autonomous plant telemetry."}
                 </p>
               </div>
             </div>
 
-            {/* SECTION 1.5 MIDDLE: "What EcoReve is built on" (Cantor8 Image 2 Layout) */}
+            {/* SECTION 1.5 MIDDLE: "What EcoReve is built on" */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-12">
               
               {/* Offset Col to position text directly next to vertical line at 42% */}
@@ -742,16 +874,16 @@ export const ProductsPage: React.FC = () => {
 
               {/* Right Text Content Block */}
               <div className="lg:col-span-8 space-y-6">
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                  What EcoReve is built on
+                <h2 className="animate-element animate-delay-500 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                  {t.productsUI.builtOnTitle || "What EcoReve is built on"}
                 </h2>
 
-                <div className="space-y-4 text-white/90 text-sm sm:text-base font-medium leading-relaxed max-w-2xl">
+                <div className="animate-element animate-delay-600 space-y-4 text-white/90 text-sm sm:text-base font-medium leading-relaxed max-w-2xl">
                   <p>
-                    EcoReve was founded by a team of environmental engineers, OEM manufacturers, and industrial automation specialists with decades of experience across high-efficiency wastewater recirculation and membrane technology.
+                    {t.productsUI.builtOnP1 || "EcoReve was founded by a team of environmental engineers, OEM manufacturers, and industrial automation specialists with decades of experience across high-efficiency wastewater recirculation and membrane technology."}
                   </p>
                   <p>
-                    The team combines technical depth with a practical understanding of how industrial plant facilities operate, focusing on building skid-mounted & containerized systems that are structured, compliant, and designed for real-world heavy manufacturing deployment.
+                    {t.productsUI.builtOnP2 || "The team combines technical depth with a practical understanding of how industrial plant facilities operate, focusing on building skid-mounted & containerized systems that are structured, compliant, and designed for real-world heavy manufacturing deployment."}
                   </p>
                 </div>
               </div>
@@ -765,20 +897,20 @@ export const ProductsPage: React.FC = () => {
       {/* SECTION 2: PRODUCTS CATALOG & INTERACTIVE FILTERS OR PRODUCT DETAIL VIEW */}
       <div ref={catalogSectionRef} className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 pt-12 sm:pt-16 space-y-8 relative z-20">
         
-        {selectedDetailProduct ? (
+        {formattedSelectedProduct ? (
           <ProductDetailView
-            product={selectedDetailProduct}
-            onBack={() => setSelectedDetailProduct(null)}
+            product={formattedSelectedProduct}
+            onBack={() => router.get('/products')}
           />
         ) : (
           <>
             {/* Page Header Block */}
             <div className="space-y-3">
               <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground">
-                Products
+                {t.productsUI.catalogTitle || "Products"}
               </h2>
               <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl font-medium leading-relaxed">
-                Explore our technology products, including Demineralization plants, DAF flotation systems, chemical dosing pumps, valves, and precision sensors. Click any product to view its detailed specifications and capacity configuration.
+                {t.productsUI.catalogDesc || "Explore our technology products, including Demineralization plants, DAF flotation systems, chemical dosing pumps, valves, and precision sensors. Click any product to view its detailed specifications and capacity configuration."}
               </p>
             </div>
 
@@ -791,7 +923,7 @@ export const ProductsPage: React.FC = () => {
               
               {/* Filter Sidebar Top Title & Reset Action */}
               <div className="pb-3 border-b border-border/70 flex items-center justify-between">
-                <h3 className="text-xl font-bold text-foreground">Filters</h3>
+                <h3 className="text-xl font-bold text-foreground">{t.productsUI.filtersTitle || "Filters"}</h3>
                 {(selectedCategoryIds.length > 0 || selectedIndustryNames.length > 0 || searchQuery) && (
                   <button
                     onClick={() => {
@@ -803,7 +935,7 @@ export const ProductsPage: React.FC = () => {
                     }}
                     className="text-xs font-mono font-bold text-[#005883] hover:underline cursor-pointer"
                   >
-                    Reset All
+                    {t.productsUI.resetAll || "Reset All"}
                   </button>
                 )}
               </div>
@@ -823,7 +955,7 @@ export const ProductsPage: React.FC = () => {
                       ) : (
                         <ChevronDown className="h-4 w-4 text-foreground shrink-0" />
                       )}
-                      <span>Product Category</span>
+                      <span>{t.productsUI.productCategory || "Product Category"}</span>
                     </span>
                     {selectedCategoryIds.length > 0 && (
                       <span className="text-[10px] font-mono font-bold bg-[#005883] text-white px-2 py-0.5 rounded-full">
@@ -841,7 +973,7 @@ export const ProductsPage: React.FC = () => {
                           type="text"
                           value={categorySearchQuery}
                           onChange={(e) => setCategorySearchQuery(e.target.value)}
-                          placeholder="Search category..."
+                          placeholder={t.productsUI.searchCategory || "Search category..."}
                           className="w-full rounded-xl bg-card border-2 border-black/80 dark:border-white/80 focus:border-black dark:focus:border-white px-3.5 py-2 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors pr-8"
                         />
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -890,7 +1022,7 @@ export const ProductsPage: React.FC = () => {
                       ) : (
                         <ChevronDown className="h-4 w-4 text-foreground shrink-0" />
                       )}
-                      <span>Industry</span>
+                      <span>{t.productsUI.industry || "Industry"}</span>
                     </span>
                     {selectedIndustryNames.length > 0 && (
                       <span className="text-[10px] font-mono font-bold bg-[#005883] text-white px-2 py-0.5 rounded-full">
@@ -908,7 +1040,7 @@ export const ProductsPage: React.FC = () => {
                           type="text"
                           value={industrySearchQuery}
                           onChange={(e) => setIndustrySearchQuery(e.target.value)}
-                          placeholder="Search industry..."
+                          placeholder={t.productsUI.searchIndustry || "Search industry..."}
                           className="w-full rounded-xl bg-card border-2 border-black/80 dark:border-white/80 focus:border-black dark:focus:border-white px-3.5 py-2 text-xs font-medium text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors pr-8"
                         />
                         <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
@@ -956,7 +1088,7 @@ export const ProductsPage: React.FC = () => {
                       ) : (
                         <ChevronDown className="h-4 w-4 text-foreground shrink-0" />
                       )}
-                      <span>Application & Grade</span>
+                      <span>{t.productsUI.application || "Application & Grade"}</span>
                     </span>
                   </button>
 
@@ -977,16 +1109,16 @@ export const ProductsPage: React.FC = () => {
               {/* Support Banner Card inside Filter Sidebar (Natural Modern Curves) */}
               <div className="rounded-2xl bg-[#005883] text-white p-5 space-y-3 shadow-md mt-4">
                 <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#8ec63f]">
-                  CUSTOM OEM SPECS
+                  {t.productsUI.customOemBadge || "CUSTOM OEM SPECS"}
                 </span>
                 <p className="text-xs font-medium leading-relaxed text-white/90">
-                  Need custom flow rates or special alloy valves for your plant?
+                  {t.productsUI.customOemDesc || "Need custom flow rates or special alloy valves for your plant?"}
                 </p>
                 <a
                   href="#contact"
                   className="inline-block text-[11px] font-mono font-bold uppercase tracking-wider bg-white text-[#005883] px-3.5 py-2 rounded-xl hover:bg-slate-100 transition-all shadow-xs"
                 >
-                  Contact OEM Team
+                  {t.productsUI.contactOemTeam || "Contact OEM Team"}
                 </a>
               </div>
             </div>
@@ -1001,7 +1133,7 @@ export const ProductsPage: React.FC = () => {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
+                placeholder={t.productsUI.searchPlaceholder || "Search products..."}
                 className="w-full rounded-xl bg-card border-2 border-black/80 dark:border-white/80 focus:border-black dark:focus:border-white px-4 py-3 text-sm font-semibold text-foreground placeholder:text-muted-foreground focus:outline-none transition-colors pr-11"
               />
               <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
@@ -1012,20 +1144,20 @@ export const ProductsPage: React.FC = () => {
               <p className="text-base sm:text-lg font-extrabold text-foreground tracking-tight">
                 <span className="text-[#005883] dark:text-sky-400 font-black">
                   {filteredProducts.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}
-                </span> of <span className="text-[#005883] dark:text-sky-400 font-black">{filteredProducts.length}</span> items
+                </span> {t.productsUI.showingResults ? "of" : "of"} <span className="text-[#005883] dark:text-sky-400 font-black">{filteredProducts.length}</span> {t.productsUI.ofItems || "items"}
               </p>
 
               <div className="flex items-center gap-4">
                 {/* Sort By Dropdown */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-foreground">Sort by:</span>
+                  <span className="text-xs font-bold text-foreground">{t.productsUI.sortBy || "Sort by:"}</span>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as "name" | "category")}
                     className="rounded-lg bg-card border border-border/80 px-3 py-1.5 text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-[#005883] cursor-pointer shadow-xs"
                   >
-                    <option value="name">Name (A-Z)</option>
-                    <option value="category">Category</option>
+                    <option value="name">{t.productsUI.sortName || "Name (A-Z)"}</option>
+                    <option value="category">{t.productsUI.sortCategory || "Category"}</option>
                   </select>
                 </div>
 
@@ -1104,13 +1236,15 @@ export const ProductsPage: React.FC = () => {
             ) : viewMode === "grid" ? (
               /* GRID VIEW (3 Columns with Clean 400x400 Square Image Layout matching News style 100%) */
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-10">
-                {paginatedProducts.map((product) => (
-                  <div
-                    key={product.id}
-                    onClick={() => setSelectedDetailProduct(product)}
-                    className="group cursor-pointer space-y-3 flex flex-col justify-between"
-                  >
-                    <div className="space-y-2.5">
+                {paginatedProducts.map((product, idx) => {
+                  const delayClass = `animate-delay-${((idx % 6) + 1) * 100}`;
+                  return (
+                    <div
+                      key={product.id}
+                      onClick={() => router.get(`/products/${product.slug || product.id}`)}
+                      className={`animate-element ${delayClass} group cursor-pointer space-y-3 flex flex-col justify-between`}
+                    >
+                      <div className="space-y-2.5">
                       {/* Clean 400x400 Aspect Square Image Container (100% Match to Reference Screenshot) */}
                       <div className="relative aspect-square w-full overflow-hidden rounded-2xl bg-secondary shadow-xs">
                         <img
@@ -1132,7 +1266,7 @@ export const ProductsPage: React.FC = () => {
 
                       {/* Product Title */}
                       <h3 className="text-lg sm:text-xl font-extrabold text-foreground group-hover:text-[#005883] dark:group-hover:text-sky-400 transition-colors leading-snug tracking-tight font-sans">
-                        {product.name}
+                        {getTrans(product.name, currentLanguage)}
                       </h3>
 
                       {/* Product Summary Description */}
@@ -1156,16 +1290,17 @@ export const ProductsPage: React.FC = () => {
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedDetailProduct(product);
+                          router.get(`/products/${product.slug || product.id}`);
                         }}
                         className="w-full rounded-xl bg-[#005883] hover:bg-[#008193] text-white text-xs font-sans font-bold uppercase tracking-wider py-3 transition-all flex items-center justify-center cursor-pointer shadow-xs"
                       >
-                        <span>View Specifications</span>
+                        <span>{t.productsUI.viewSpecifications || "View Specifications"}</span>
                       </button>
                     </div>
                   </div>
-                ))}
-              </div>
+                );
+              })}
+            </div>
             ) : (
               /* LIST VIEW (100% Match to Reference Screenshot) */
               <div className="space-y-6">
@@ -1176,7 +1311,7 @@ export const ProductsPage: React.FC = () => {
                   >
                     {/* Left Full-Height Thumbnail Image */}
                     <div
-                      onClick={() => setSelectedDetailProduct(product)}
+                      onClick={() => router.get(`/products/${product.slug || product.id}`)}
                       className="w-full sm:w-64 md:w-80 shrink-0 h-52 sm:h-auto overflow-hidden bg-muted relative cursor-pointer"
                     >
                       <img
@@ -1191,7 +1326,7 @@ export const ProductsPage: React.FC = () => {
                       <div className="space-y-2">
                         {/* Underlined Title */}
                         <h3
-                          onClick={() => setSelectedDetailProduct(product)}
+                          onClick={() => router.get(`/products/${product.slug || product.id}`)}
                           className="text-lg sm:text-xl md:text-2xl font-bold text-[#002f47] dark:text-sky-200 underline underline-offset-4 decoration-2 hover:text-[#005883] transition-colors leading-snug cursor-pointer"
                         >
                           {product.name}
@@ -1199,7 +1334,7 @@ export const ProductsPage: React.FC = () => {
 
                         {/* Author / Category Subtitle */}
                         <p className="text-xs text-muted-foreground font-medium">
-                          By EcoReve Industrial Systems • {product.categoryTitle}
+                          {t.productsUI.byEcoReve || "By EcoReve Industrial Systems"} • {product.categoryTitle}
                         </p>
                       </div>
 
@@ -1210,10 +1345,10 @@ export const ProductsPage: React.FC = () => {
 
                       {/* "Learn more ->" Text Arrow Action Link */}
                       <button
-                        onClick={() => setSelectedDetailProduct(product)}
+                        onClick={() => router.get(`/products/${product.slug || product.id}`)}
                         className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold text-[#005883] dark:text-sky-400 hover:text-[#008193] transition-all cursor-pointer group/link self-start pt-1"
                       >
-                        <span>Configure & Detail</span>
+                        <span>{t.productsUI.configureDetail || "Configure & Detail"}</span>
                         <ArrowRight className="h-4 w-4 transition-transform group-hover/link:translate-x-1.5" />
                       </button>
                     </div>
@@ -1235,7 +1370,9 @@ export const ProductsPage: React.FC = () => {
                             ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold"
                             : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold"
                         }
-                      />
+                      >
+                        {t.productsUI.paginationPrevious || "Previous"}
+                      </PaginationPrevious>
                     </PaginationItem>
 
                     {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
@@ -1262,7 +1399,9 @@ export const ProductsPage: React.FC = () => {
                             ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold"
                             : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold"
                         }
-                      />
+                      >
+                        {t.productsUI.paginationNext || "Next"}
+                      </PaginationNext>
                     </PaginationItem>
                   </PaginationContent>
                 </Pagination>
@@ -1339,6 +1478,9 @@ export const ProductsPage: React.FC = () => {
         </div>
       )}
 
-    </div>
+      </div>
+    </AppLayout>
   );
 };
+
+export default ProductsPage;

@@ -1,10 +1,30 @@
 import React, { useRef } from "react";
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react";
-import { newsItems } from "@/data/newsData";
+import { newsItems as fallbackNewsItems } from "@/data/newsData";
 import { useTranslation } from "@/i18n/useTranslation";
+import { router } from "@inertiajs/react";
+import { getTrans } from "@/utils/transHelper";
 
-export const LatestNewsSection: React.FC = () => {
-  const { t } = useTranslation();
+interface NewsItemData {
+  id: number | string;
+  title: any;
+  category?: any;
+  published_at?: string;
+  created_at?: string;
+  image_url?: string;
+  image?: string;
+  slug?: string;
+  bgType?: "image" | "color" | "accent";
+  bgAccentColor?: string;
+  textColor?: string;
+}
+
+interface LatestNewsSectionProps {
+  latestNews?: NewsItemData[];
+}
+
+export const LatestNewsSection: React.FC<LatestNewsSectionProps> = ({ latestNews = [] }) => {
+  const { t, currentLanguage } = useTranslation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const handleScroll = (direction: "left" | "right") => {
@@ -17,14 +37,31 @@ export const LatestNewsSection: React.FC = () => {
     }
   };
 
+  // Map DB items or use sample fallback
+  const itemsToRender: NewsItemData[] = latestNews && latestNews.length > 0
+    ? latestNews.map((n: any) => ({
+        id: n.id,
+        slug: n.slug,
+        title: getTrans(n.title, currentLanguage),
+        category: getTrans(n.category, currentLanguage) || "Research & Case Study",
+        published_at: n.published_at
+          ? new Date(n.published_at).toLocaleDateString("en-US", { month: "short", day: "2-digit", year: "numeric" }).toUpperCase()
+          : "AUG 2026",
+        image: n.image_url || fallbackNewsItems[0]?.image,
+        bgType: "image",
+      }))
+    : fallbackNewsItems;
+
   return (
     <section className="w-full bg-background py-10 sm:py-16 md:py-20 overflow-hidden" id="latest-news">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8">
-        {/* Section Header Row (Inline alignment & proportional sizing for Mobile & Desktop) */}
-        <div className="flex items-end justify-between gap-4">
-          <h2 className="text-xl sm:text-3xl md:text-5xl font-extrabold tracking-tight text-foreground max-w-2xl leading-tight text-left">
-            {t.newsUI.heroBadge}
-          </h2>
+        {/* Section Header Row */}
+        <div className="reveal flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
+          <div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-snug">
+              {t.newsUI.heroBadge}
+            </h2>
+          </div>
 
           {/* Top Right Carousel Navigation Controls (< & >) */}
           <div className="flex items-center gap-2 shrink-0 mb-0.5">
@@ -53,13 +90,17 @@ export const LatestNewsSection: React.FC = () => {
           className="flex gap-4 overflow-x-auto scrollbar-none snap-x snap-mandatory pb-4 pt-2"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {newsItems.map((item) => {
-            const isImage = item.bgType === "image";
+          {itemsToRender.map((item, idx) => {
+            const isImage = item.bgType !== "color";
+            const displayCategory = item.category || "Research & Case Study";
+            const displayDate = item.published_at || (item as any).date || "AUG 2026";
+            const cardImg = item.image || item.image_url || fallbackNewsItems[idx % fallbackNewsItems.length]?.image;
 
             return (
               <div
-                key={item.id}
-                className="shrink-0 w-[290px] sm:w-[320px] lg:w-[335px] h-[450px] relative snap-start shadow-xl group cursor-pointer news-card-smooth-notch hover:-translate-y-2"
+                key={item.id || idx}
+                onClick={() => router.visit(`/news/${item.slug || item.id}`)}
+                className="reveal shrink-0 w-[290px] sm:w-[320px] lg:w-[335px] h-[450px] relative snap-start shadow-xl group cursor-pointer news-card-smooth-notch hover:-translate-y-2"
                 style={{
                   backgroundColor: !isImage ? item.bgAccentColor : undefined,
                   color: !isImage ? item.textColor : undefined,
@@ -69,7 +110,7 @@ export const LatestNewsSection: React.FC = () => {
                 {isImage && (
                   <>
                     <img
-                      src={item.image}
+                      src={cardImg}
                       alt={item.title}
                       className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
@@ -86,10 +127,10 @@ export const LatestNewsSection: React.FC = () => {
                         : "bg-white/15 text-white/90"
                     }`}
                   >
-                    {item.category}
+                    {displayCategory}
                   </span>
                   <span className="text-white/80">
-                    {item.date}
+                    {displayDate}
                   </span>
                 </div>
 

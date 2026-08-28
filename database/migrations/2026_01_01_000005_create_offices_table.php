@@ -11,9 +11,9 @@ return new class extends Migration
         // Combined Table for Footer Descriptions & Office Cards
         Schema::create('offices', function (Blueprint $table) {
             $table->id();
-            $table->string('badge'); // Contoh: "China Office", "Malaysia Office"
-            $table->string('name');  // Contoh: "Qingdao EcoReve Environmental Technology Co., LTD"
-            $table->text('address'); // Alamat Lengkap Kantor
+            $table->text('badge')->nullable(); // JSON 5-Language Badge
+            $table->text('name')->nullable();  // JSON 5-Language / String Name
+            $table->text('address')->nullable(); // JSON 5-Language Address
             $table->string('phone')->nullable(); // Nomor Telepon Kantor
             $table->string('email')->nullable(); // Email Resmi Kantor
 

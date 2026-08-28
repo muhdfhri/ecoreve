@@ -8,12 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // FAQ Table (Question, Answer & Custom Sort Order)
+        // FAQ Table (Question, Answer & Custom Sort Order - 5-Language JSON Schema)
         Schema::create('faqs', function (Blueprint $table) {
             $table->id();
-            $table->text('question'); // Pertanyaan
-            $table->text('answer');   // Jawaban
-            $table->integer('sort_order')->default(0); // Urutan Tampil (Custom Position: 1, 2, 3...)
+            $table->json('question'); // Pertanyaan JSON 5 Bahasa: {"en": "...", "id": "...", "ms": "...", "th": "...", "zh": "..."}
+            $table->json('answer');   // Jawaban JSON 5 Bahasa
+            $table->integer('sort_order')->default(0); // Urutan Tampil
             $table->timestamps();
         });
     }

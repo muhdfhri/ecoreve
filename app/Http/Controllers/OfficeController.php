@@ -19,6 +19,8 @@ class OfficeController extends Controller
             'footer_desc_2' => 'nullable|string',
         ]);
 
+        $maxSort = DB::table('offices')->max('sort_order') ?? 0;
+
         DB::table('offices')->insert([
             'badge' => $validated['badge'],
             'name' => $validated['name'],
@@ -27,6 +29,7 @@ class OfficeController extends Controller
             'email' => $validated['email'] ?? '',
             'footer_desc_1' => $validated['footer_desc_1'] ?? '',
             'footer_desc_2' => $validated['footer_desc_2'] ?? '',
+            'sort_order' => $maxSort + 1,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

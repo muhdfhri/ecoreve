@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import { AppLayout } from "../Layouts/AppLayout";
+import { SEOHead } from "@/Components/common/SEOHead";
 import {
   Wrench,
   Sliders,
@@ -22,23 +24,35 @@ import ctaIsoMonochromeImg from "@/assets/cta-iso-monochrome.png";
 import heroBannerImg from "@/assets/hero-banner.webp";
 import heroFooterImg from "@/assets/hero-footer.webp";
 import { useTranslation } from "@/i18n/useTranslation";
+import { getTrans } from "@/utils/transHelper";
 
 export interface ServiceItem {
-  id: string;
+  id: string | number;
   title: string;
-  category: "system-integration" | "technical-operations" | "lifecycle-maintenance";
+  category: string;
   categoryTitle: string;
   shortDesc: string;
   fullDesc: string;
   features: string[];
   deliverables: string[];
   turnaroundTime: string;
+  metricLabel?: string;
+  metricValue?: string;
+  metricDesc?: string;
   icon: React.ComponentType<{ className?: string }>;
   image: string;
 }
 
-export const ServicesPage: React.FC = () => {
-  const { t } = useTranslation();
+interface ServicesPageProps {
+  services?: any[];
+  serviceCategories?: any[];
+}
+
+export const ServicesPage: React.FC<ServicesPageProps> = ({
+  services = [],
+  serviceCategories = [],
+}) => {
+  const { t, currentLanguage } = useTranslation();
   const heroRef = useRef<HTMLDivElement>(null);
   const pathRef = useRef<SVGPathElement>(null);
   const servicesCatalogRef = useRef<HTMLDivElement>(null);
@@ -46,7 +60,16 @@ export const ServicesPage: React.FC = () => {
   const [pathTotalLength, setPathTotalLength] = useState<number>(2200);
 
   // Active Category Filter
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const initialCategoryParam = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "").get("category");
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategoryParam || "all");
+  
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("category");
+    if (param) {
+      setSelectedCategory(param);
+    }
+  }, [typeof window !== "undefined" ? window.location.search : ""]);
+
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedServiceDetail, setSelectedServiceDetail] = useState<ServiceItem | null>(null);
 
@@ -56,8 +79,8 @@ export const ServicesPage: React.FC = () => {
   // Expanding Gallery Section State
   const [activeGalleryIndex, setActiveGalleryIndex] = useState<number>(0);
 
-  // Services Catalog Data
-  const servicesList: ServiceItem[] = [
+  // Fallback Services Catalog Data
+  const fallbackServicesList: ServiceItem[] = [
     {
       id: "installation",
       title: "On-Site Mechanical & Piping Installation",
@@ -77,6 +100,9 @@ export const ServicesPage: React.FC = () => {
         "Electrical Insulation Safety Compliance Audit",
       ],
       turnaroundTime: "3 - 7 Business Days",
+      metricLabel: "IMMERSY",
+      metricValue: "+2",
+      metricDesc: "Operations expanded to 2 additional neighborhoods.",
       icon: Wrench,
       image: heroBannerImg,
     },
@@ -99,6 +125,9 @@ export const ServicesPage: React.FC = () => {
         "Final Plant Commissioning Sign-off Certificate",
       ],
       turnaroundTime: "2 - 5 Business Days",
+      metricLabel: "CHEMICAL SAVINGS",
+      metricValue: "38%",
+      metricDesc: "Reduced chemical consumption via real-time telemetry feedback loops.",
       icon: Sliders,
       image: heroFooterImg,
     },
@@ -121,6 +150,9 @@ export const ServicesPage: React.FC = () => {
         "24/7 Digital Quick-Reference SOP Video Access",
       ],
       turnaroundTime: "1 - 3 Training Days",
+      metricLabel: "OPERATOR CONFIDENCE",
+      metricValue: "95%",
+      metricDesc: "95%+ operational efficiency after SOP-based simulator training.",
       icon: Sliders,
       image: heroBannerImg,
     },
@@ -143,6 +175,9 @@ export const ServicesPage: React.FC = () => {
         "Priority Emergency Technician Dispatch Guarantee",
       ],
       turnaroundTime: "Annual Service Contract (24/7 Response)",
+      metricLabel: "UPTIME GUARANTEE",
+      metricValue: "99.9%",
+      metricDesc: "Continuous real-time water quality monitoring and predictive maintenance alerts.",
       icon: ShieldCheck,
       image: heroFooterImg,
     },
@@ -165,10 +200,49 @@ export const ServicesPage: React.FC = () => {
         "Standard Installation Guide & Torque Specs",
       ],
       turnaroundTime: "24 - 48 Hours Dispatch",
+      metricLabel: "DISPATCH SPEED",
+      metricValue: "48 Hours",
+      metricDesc: "Express global air-freight dispatch for all genuine spare parts.",
       icon: Wrench,
       image: heroBannerImg,
     },
   ];
+
+  // Map DB services to ServiceItem format or use fallback
+  const servicesList: ServiceItem[] = services && services.length > 0
+    ? services.map((s: any) => {
+        let parsedFeatures: string[] = [];
+        if (Array.isArray(s.features)) {
+          parsedFeatures = s.features;
+        } else if (typeof s.features === "string") {
+          try { parsedFeatures = JSON.parse(s.features); } catch (e) { parsedFeatures = [s.features]; }
+        }
+
+        let parsedDeliverables: string[] = [];
+        if (Array.isArray(s.deliverables)) {
+          parsedDeliverables = s.deliverables;
+        } else if (typeof s.deliverables === "string") {
+          try { parsedDeliverables = JSON.parse(s.deliverables); } catch (e) { parsedDeliverables = [s.deliverables]; }
+        }
+
+        return {
+          id: s.id || s.slug,
+          title: s.title || "",
+          category: s.category_slug || (s.metric_label ? s.metric_label.toLowerCase().replace(/\s+/g, '-') : "system-integration"),
+          categoryTitle: s.category_title || s.metric_label || "System Integration",
+          shortDesc: s.short_desc || "",
+          fullDesc: s.full_desc || s.short_desc || "",
+          features: parsedFeatures.length > 0 ? parsedFeatures : ["ISO 9001 Certified Engineering", "Turnkey Skid Assembly"],
+          deliverables: parsedDeliverables.length > 0 ? parsedDeliverables : ["Standard Inspection Certificate"],
+          turnaroundTime: s.turnaround_time || "3 - 5 Business Days",
+          metricLabel: s.metric_label || s.category_title || "ECOREVE",
+          metricValue: s.metric_value || "100%",
+          metricDesc: s.metric_desc || s.short_desc || "",
+          icon: s.icon_name === "Sliders" ? Sliders : s.icon_name === "ShieldCheck" ? ShieldCheck : Wrench,
+          image: heroBannerImg,
+        };
+      })
+    : fallbackServicesList;
 
   // FAQ Items
   const faqList = [
@@ -246,13 +320,18 @@ export const ServicesPage: React.FC = () => {
   });
 
   return (
-    <div className="w-full min-h-screen bg-background text-foreground pb-0">
-      
-      {/* SECTION 1: FULL-BLEED CORPORATE BLUE HERO WITH DYNAMIC SERVICES TELEMETRY CURVE */}
-      <div
-        ref={heroRef}
-        className="w-full bg-[#005883] text-white -mt-20 sm:-mt-24 md:-mt-28 px-4 sm:px-6 md:px-8 relative overflow-hidden transition-all duration-300 pt-28 sm:pt-32 md:pt-40 pb-16 sm:pb-24"
-      >
+    <AppLayout activeNav="Service">
+      <SEOHead
+        title="Engineering Services — EcoReve"
+        description="Turnkey EPC project execution, environmental consulting, on-site plant commissioning, membrane retrofits, and 24/7 telemetry maintenance."
+        url="https://ecoreve.com/services"
+      />
+      <div className="w-full min-h-screen bg-background text-foreground pb-0">
+        {/* SECTION 1: FULL-BLEED CORPORATE BLUE HERO WITH DYNAMIC SERVICES TELEMETRY CURVE */}
+        <div
+          ref={heroRef}
+          className="w-full bg-[#005883] text-white -mt-20 sm:-mt-24 md:-mt-28 px-4 sm:px-6 md:px-8 relative overflow-hidden transition-all duration-300 pt-28 sm:pt-32 md:pt-40 pb-16 sm:pb-24"
+        >
         {/* Deep Corporate Blue Base */}
         <div className="absolute inset-0 bg-[#005883] pointer-events-none z-0" />
 
@@ -294,30 +373,30 @@ export const ServicesPage: React.FC = () => {
           />
         </svg>
 
-        {/* Hero Headline & Corporate Brand Label Container (100% Matched to Products Hero Layout & Dimensions) */}
+        {/* Hero Headline & Corporate Brand Label Container */}
         <div className="mx-auto max-w-[1440px] relative z-20 space-y-24 sm:space-y-32">
           
           {/* SECTION 1 TOP: Brand Title & Headline */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-4">
             {/* Left Col: Huge Brand Name */}
             <div className="lg:col-span-6 space-y-4">
-              <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-none">
-                EcoReve
+              <h1 className="animate-element animate-delay-200 text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tight text-white leading-none">
+                {t.servicesUI.heroBrand || "EcoReve"}
               </h1>
-              <p className="text-xs font-mono font-bold tracking-widest text-white/70 uppercase">
-                QINGDAO TOPOLAR INDUSTRIAL WATER SYSTEMS
+              <p className="animate-element animate-delay-300 text-xs font-mono font-bold tracking-widest text-white/70 uppercase">
+                {t.servicesUI.heroSubtitle || "QINGDAO TOPOLAR INDUSTRIAL WATER SYSTEMS"}
               </p>
             </div>
 
             {/* Right Col: Hero Subheadline Paragraph */}
             <div className="lg:col-span-6 pt-2 lg:pt-4 space-y-6">
-              <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight max-w-xl">
-                Full-Lifecycle Engineering, System Integration & 24/7 Telemetry Technical Assistance.
+              <p className="animate-element animate-delay-400 text-xl sm:text-2xl md:text-3xl font-extrabold text-white leading-snug tracking-tight max-w-xl">
+                {t.servicesUI.heroHeadline || "Full-Lifecycle Engineering, System Integration & 24/7 Telemetry Technical Assistance."}
               </p>
             </div>
           </div>
 
-          {/* SECTION 1.5 MIDDLE: Engineering Standards We Deliver (100% Matched to Products "What EcoReve is built on") */}
+          {/* SECTION 1.5 MIDDLE: Engineering Standards We Deliver */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-12">
             
             {/* Offset Col to position text directly next to vertical line at 42% */}
@@ -325,16 +404,16 @@ export const ServicesPage: React.FC = () => {
 
             {/* Right Text Content Block */}
             <div className="lg:col-span-8 space-y-6">
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
-                Engineering standards we deliver
+              <h2 className="animate-element animate-delay-500 text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-white leading-tight">
+                {t.servicesUI.standardsTitle || "Engineering standards we deliver"}
               </h2>
 
-              <div className="space-y-4 text-white/90 text-sm sm:text-base font-medium leading-relaxed max-w-2xl">
+              <div className="animate-element animate-delay-600 space-y-4 text-white/90 text-sm sm:text-base font-medium leading-relaxed max-w-2xl">
                 <p>
-                  Our technical service teams combine mechanical precision with deep process engineering expertise. From turnkey piping assembly and ISO 9001 certified plant commissioning to hands-on SOP operator training and 15-minute emergency telemetry response.
+                  {t.servicesUI.standardsP1 || "Our technical service teams combine mechanical precision with deep process engineering expertise. From turnkey piping assembly and ISO 9001 certified plant commissioning to hands-on SOP operator training and 15-minute emergency telemetry response."}
                 </p>
                 <p>
-                  Every service engagement is executed by senior OEM specialists committed to maintaining your water treatment and DAF flotation plant at peak efficiency throughout its operational lifecycle.
+                  {t.servicesUI.standardsP2 || "Every service engagement is executed by senior OEM specialists committed to maintaining your water treatment and DAF flotation plant at peak efficiency throughout its operational lifecycle."}
                 </p>
               </div>
             </div>
@@ -344,56 +423,56 @@ export const ServicesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* SECTION 2: OUR TECHNICAL SERVICES (100% Match to Canton Reference Layout) */}
+      {/* SECTION 2: OUR TECHNICAL SERVICES */}
       <div ref={servicesCatalogRef} className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 pt-12 sm:pt-16 space-y-12 relative z-20">
         
         {/* 2-Column Main Sticky Layout Container */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start">
           
-          {/* LEFT 5-COLUMNS: STICKY NARRATIVE COLUMN (Compact on mobile without giant empty gap) */}
-          <div className="lg:col-span-5 lg:sticky lg:top-28 self-start flex flex-col justify-start lg:justify-between space-y-3 lg:space-y-0 min-h-0 lg:min-h-[440px]">
+          {/* LEFT 5-COLUMNS: STICKY NARRATIVE COLUMN */}
+          <div className="reveal lg:col-span-5 lg:sticky lg:top-28 self-start flex flex-col justify-start lg:justify-between space-y-3 lg:space-y-0 min-h-0 lg:min-h-[440px]">
             
             {/* Top Headline Block */}
             <div className="space-y-2 text-left">
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-snug sm:leading-[1.08] font-sans">
-                We work directly with industrial plants to build systems on EcoReve
+                {t.servicesUI.stickyHeadline || "We work directly with industrial plants to build systems on EcoReve"}
               </h2>
             </div>
 
             {/* Bottom Paragraph Block */}
             <div className="pt-1 lg:pt-8 lg:mt-auto text-left">
               <p className="text-xs sm:text-sm md:text-base text-foreground/80 font-medium leading-relaxed max-w-sm">
-                Our work is shaped by direct collaboration with plant managers, focusing on systems that integrate into existing workflows rather than replacing them.
+                {t.servicesUI.stickyParagraph || "Our work is shaped by direct collaboration with plant managers, focusing on systems that integrate into existing workflows rather than replacing them."}
               </p>
             </div>
 
           </div>
 
-          {/* RIGHT 7-COLUMNS: SCROLLABLE BLUE CARDS STACK (100% Match to Canton Reference Layout & Typography) */}
+          {/* RIGHT 7-COLUMNS: SCROLLABLE BLUE CARDS STACK */}
           <div className="lg:col-span-7 space-y-5">
-            {servicesList.map((service) => (
+            {servicesList.map((service, idx) => (
               <div
                 key={service.id}
-                className="rounded-xl bg-[#005883] text-white p-6 sm:p-8 shadow-sm border border-white/10 relative overflow-hidden group cursor-pointer hover:bg-[#00486e] transition-all grid grid-cols-1 sm:grid-cols-12 gap-6 min-h-[220px] sm:min-h-[250px]"
+                className="reveal rounded-2xl bg-[#005883] text-white p-6 sm:p-8 shadow-xl border border-white/20 relative overflow-hidden group cursor-pointer hover:bg-[#00486e] hover:-translate-y-1 transition-all duration-300 grid grid-cols-1 sm:grid-cols-12 gap-6 min-h-[220px] sm:min-h-[250px]"
                 onClick={() => setSelectedServiceDetail(service)}
               >
                 {/* Left Side inside Card: Small White Badge Only */}
                 <div className="sm:col-span-4 flex items-start">
-                  <span className="inline-block bg-white text-[#005883] px-3 py-1 rounded-md text-[10px] sm:text-[11px] font-sans font-bold tracking-wider shadow-xs">
-                    {service.categoryTitle}
+                  <span className="inline-block bg-white/95 backdrop-blur-md text-[#005883] px-3.5 py-1.5 rounded-xl text-[10px] sm:text-[11px] font-sans font-bold tracking-wider shadow-md">
+                    {getTrans(service.categoryTitle, currentLanguage)}
                   </span>
                 </div>
 
-                {/* Right Side inside Card: Top Title + Bottom Paragraph (Left Aligned in Right Block) */}
+                {/* Right Side inside Card: Top Title + Bottom Paragraph */}
                 <div className="sm:col-span-8 flex flex-col justify-between space-y-6 sm:space-y-10">
                   {/* Top: Proportional Title */}
                   <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-white leading-snug tracking-tight font-sans text-left">
-                    {service.title}
+                    {getTrans(service.title, currentLanguage)}
                   </h3>
 
                   {/* Bottom: Proportional Description Paragraph */}
                   <p className="text-xs sm:text-sm text-white/90 font-normal leading-relaxed text-left max-w-md pt-2 mt-auto">
-                    {service.fullDesc}
+                    {getTrans(service.fullDesc, currentLanguage)}
                   </p>
                 </div>
               </div>
@@ -402,16 +481,16 @@ export const ServicesPage: React.FC = () => {
 
         </div>
 
-        {/* SECTION 3: REAL IMPACT & PROVEN RESULTS (100% Match to Reference Screenshot Layout) */}
-        <div className="pt-16 sm:pt-20 border-t border-border/60 space-y-10">
+        {/* SECTION 3: REAL IMPACT & PROVEN RESULTS */}
+        <div className="reveal pt-16 sm:pt-20 border-t border-border/60 space-y-10">
           
           {/* Header Block (Proportional scaling across mobile & desktop) */}
           <div className="space-y-0.5 text-left">
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-              Real impact.
+              {t.servicesUI.realImpactLine1 || "Real impact."}
             </h2>
             <h2 className="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight text-foreground leading-tight">
-              Proven results.
+              {t.servicesUI.realImpactLine2 || "Proven results."}
             </h2>
           </div>
 
@@ -431,10 +510,10 @@ export const ServicesPage: React.FC = () => {
               {/* Bottom Text Content Block */}
               <div className="pt-8 sm:pt-10 space-y-1.5 mt-auto">
                 <h3 className="text-lg sm:text-xl font-extrabold text-foreground font-sans tracking-tight">
-                  Plant commissioning setup time
+                  {t.servicesUI.heroMetricTitle || "Plant commissioning setup time"}
                 </h3>
                 <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                  Reduced from weeks to 48 hours with pre-tested skid architecture
+                  {t.servicesUI.heroMetricDesc || "Reduced from weeks to 48 hours with pre-tested skid architecture"}
                 </p>
               </div>
             </div>
@@ -451,10 +530,10 @@ export const ServicesPage: React.FC = () => {
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-sm sm:text-base font-extrabold text-foreground font-sans">
-                      Water quality SLA coverage
+                      {t.servicesUI.item1Title || "Water quality SLA coverage"}
                     </h4>
                     <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                      100% automated effluent conductivity & silica leakage telemetry
+                      {t.servicesUI.item1Desc || "100% automated effluent conductivity & silica leakage telemetry"}
                     </p>
                   </div>
                 </div>
@@ -466,10 +545,10 @@ export const ServicesPage: React.FC = () => {
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-sm sm:text-base font-extrabold text-foreground font-sans">
-                      Maintenance efficiency
+                      {t.servicesUI.item2Title || "Maintenance efficiency"}
                     </h4>
                     <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                      60% less time spent on manual valve & dosing pump calibration
+                      {t.servicesUI.item2Desc || "60% less time spent on manual valve & dosing pump calibration"}
                     </p>
                   </div>
                 </div>
@@ -484,10 +563,10 @@ export const ServicesPage: React.FC = () => {
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-sm sm:text-base font-extrabold text-foreground font-sans">
-                      Operator confidence
+                      {t.servicesUI.item3Title || "Operator confidence"}
                     </h4>
                     <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                      95%+ operational efficiency after SOP-based simulator training
+                      {t.servicesUI.item3Desc || "95%+ operational efficiency after SOP-based simulator training"}
                     </p>
                   </div>
                 </div>
@@ -499,10 +578,10 @@ export const ServicesPage: React.FC = () => {
                   </div>
                   <div className="space-y-0.5">
                     <h4 className="text-sm sm:text-base font-extrabold text-foreground font-sans">
-                      Consistent plant uptime
+                      {t.servicesUI.item4Title || "Consistent plant uptime"}
                     </h4>
                     <p className="text-xs sm:text-sm text-muted-foreground font-medium leading-relaxed">
-                      Every SCADA telemetry loop meets ISO 9001 standard — even under high pressure
+                      {t.servicesUI.item4Desc || "Every SCADA telemetry loop meets ISO 9001 standard — even under high pressure"}
                     </p>
                   </div>
                 </div>
@@ -521,13 +600,13 @@ export const ServicesPage: React.FC = () => {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-3 sm:gap-6 text-left">
             <div className="max-w-2xl">
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-foreground leading-snug sm:leading-[1.1] font-sans">
-                What happens after the work goes live.
+                {t.servicesUI.marqueeTitle || "What happens after the work goes live."}
               </h2>
             </div>
 
             <div className="max-w-md md:text-right">
               <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium">
-                Beyond delivery, our work is designed to perform. The numbers below reflect how what we build behaves in practice, across markets, products, and stages of growth.
+                {t.servicesUI.marqueeSub || "Beyond delivery, our work is designed to perform. The numbers below reflect how what we build behaves in practice, across markets, products, and stages of growth."}
               </p>
             </div>
           </div>
@@ -553,79 +632,15 @@ export const ServicesPage: React.FC = () => {
 
             {/* Marquee Track (Duplicated set for seamless loop with tight proportional gap) */}
             <div className="animate-marquee-smooth flex gap-2.5 sm:gap-3">
-              {[
-                {
-                  logo: "talenthealth",
-                  stat: "+30",
-                  desc: "30 positions opened in the first month of operation.",
-                },
-                {
-                  logo: "CASTRO & HENRICHSEN",
-                  stat: "+250%",
-                  desc: "Team size grew 250% after the rebrand.",
-                },
-                {
-                  logo: "LOC",
-                  stat: "+2",
-                  desc: "MVP developed for a company that expanded to 2 countries and 3 cities in 3 years.",
-                },
-                {
-                  logo: "immersy",
-                  stat: "+2",
-                  desc: "Operations expanded to 2 additional neighborhoods.",
-                },
-                {
-                  logo: "COC",
-                  stat: "+3.000",
-                  desc: "Marketing portal for an education system with more than 3,000 schools.",
-                },
-                {
-                  logo: "CACTUS",
-                  stat: "+1.400",
-                  desc: "Database grew to 1,400+ registered legal actions.",
-                },
-                {
-                  logo: "NANDO REIS",
-                  stat: "+100k",
-                  desc: "Website for a Brazilian artist with global reach, averaging 100,000 monthly visits.",
-                },
-                // Duplicate set for seamless continuous loop
-                {
-                  logo: "talenthealth",
-                  stat: "+30",
-                  desc: "30 positions opened in the first month of operation.",
-                },
-                {
-                  logo: "CASTRO & HENRICHSEN",
-                  stat: "+250%",
-                  desc: "Team size grew 250% after the rebrand.",
-                },
-                {
-                  logo: "LOC",
-                  stat: "+2",
-                  desc: "MVP developed for a company that expanded to 2 countries and 3 cities in 3 years.",
-                },
-                {
-                  logo: "immersy",
-                  stat: "+2",
-                  desc: "Operations expanded to 2 additional neighborhoods.",
-                },
-                {
-                  logo: "COC",
-                  stat: "+3.000",
-                  desc: "Marketing portal for an education system with more than 3,000 schools.",
-                },
-                {
-                  logo: "CACTUS",
-                  stat: "+1.400",
-                  desc: "Database grew to 1,400+ registered legal actions.",
-                },
-                {
-                  logo: "NANDO REIS",
-                  stat: "+100k",
-                  desc: "Website for a Brazilian artist with global reach, averaging 100,000 monthly visits.",
-                },
-              ].map((item, idx) => (
+              {(() => {
+                const baseMetrics = servicesList.map((s) => ({
+                  logo: getTrans(s.metricLabel || s.categoryTitle || s.title, currentLanguage),
+                  stat: s.metricValue || "100%",
+                  desc: getTrans(s.metricDesc || s.shortDesc || s.title, currentLanguage),
+                }));
+                // Duplicate track to ensure smooth continuous infinite scroll loop
+                return [...baseMetrics, ...baseMetrics, ...baseMetrics];
+              })().map((item, idx) => (
                 <div
                   key={idx}
                   className="rounded-2xl bg-white dark:bg-card border border-border/60 p-4 sm:p-5 flex flex-col justify-between w-[220px] sm:w-[260px] h-[150px] sm:h-[175px] shrink-0 shadow-xs hover:border-[#005883]/60 transition-all group"
@@ -658,26 +673,26 @@ export const ServicesPage: React.FC = () => {
           {/* Main Statement Headline with Silky Smooth Word-by-Word Scroll Reveal (Matching Reference 100%) */}
           <div className="w-full pl-0 sm:pl-16 md:pl-28 lg:pl-36 pr-4 sm:pr-8 text-left">
             <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-semibold tracking-tight leading-snug sm:leading-[1.28] text-foreground font-sans max-w-5xl">
-              {[
-                "A", "brand", "is", "recognized", "before", "it", "is", "understood.",
-                "Your", "visual", "identity", "shapes", "how", "people", "recognize",
-                "you,", "trust", "you,", "and", "remember", "you.", "We", "help", "define",
-                "that", "difference."
-              ].map((word, idx, arr) => {
-                const wordStart = idx / arr.length;
-                const wordProgress = Math.min(1, Math.max(0, (statementProgress - wordStart * 0.65) / 0.35));
-                const opacity = 0.15 + wordProgress * 0.85;
+              {(
+                t.servicesUI.scrollRevealText ||
+                "A brand is recognized before it is understood. Your visual identity shapes how people recognize you, trust you, and remember you. We help define that difference."
+              )
+                .split(" ")
+                .map((word, idx, arr) => {
+                  const wordStart = idx / arr.length;
+                  const wordProgress = Math.min(1, Math.max(0, (statementProgress - wordStart * 0.65) / 0.35));
+                  const opacity = 0.15 + wordProgress * 0.85;
 
-                return (
-                  <span
-                    key={idx}
-                    style={{ opacity }}
-                    className="transition-opacity duration-200 ease-out inline-block mr-[0.25em] text-[#0d0d0d] dark:text-white"
-                  >
-                    {word}
-                  </span>
-                );
-              })}
+                  return (
+                    <span
+                      key={idx}
+                      style={{ opacity }}
+                      className="transition-opacity duration-200 ease-out inline-block mr-[0.25em] text-[#0d0d0d] dark:text-white"
+                    >
+                      {word}
+                    </span>
+                  );
+                })}
             </h2>
           </div>
 
@@ -689,41 +704,41 @@ export const ServicesPage: React.FC = () => {
             {[
               {
                 id: 0,
-                tag: "Branding",
-                title: "Strategy matters",
-                subtitle: "Why brand strategy matters, and how to build one",
+                tag: t.servicesUI.pillar0Tag || "Branding",
+                title: t.servicesUI.pillar0Title || "Strategy matters",
+                subtitle: t.servicesUI.pillar0Sub || "Why brand strategy matters, and how to build one",
                 image: heroBannerImg,
                 badgeBg: "bg-[#4a5d2e]/80",
               },
               {
                 id: 1,
-                tag: "Engineering",
-                title: "Precision matters",
-                subtitle: "High-purity water treatment architecture & SCADA telemetry",
+                tag: t.servicesUI.pillar1Tag || "Engineering",
+                title: t.servicesUI.pillar1Title || "Precision matters",
+                subtitle: t.servicesUI.pillar1Sub || "High-purity water treatment architecture & SCADA telemetry",
                 image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=800&q=80",
                 badgeBg: "bg-[#005883]/80",
               },
               {
                 id: 2,
-                tag: "Integration",
-                title: "Execution matters",
-                subtitle: "Turnkey piping & ISO 9001 certified plant commissioning",
+                tag: t.servicesUI.pillar2Tag || "Integration",
+                title: t.servicesUI.pillar2Title || "Execution matters",
+                subtitle: t.servicesUI.pillar2Sub || "Turnkey piping & ISO 9001 certified plant commissioning",
                 image: "https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80",
                 badgeBg: "bg-[#008193]/80",
               },
               {
                 id: 3,
-                tag: "Telemetry",
-                title: "Uptime matters",
-                subtitle: "24/7 remote monitoring with 15-minute emergency response",
+                tag: t.servicesUI.pillar3Tag || "Telemetry",
+                title: t.servicesUI.pillar3Title || "Uptime matters",
+                subtitle: t.servicesUI.pillar3Sub || "24/7 remote monitoring with 15-minute emergency response",
                 image: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?auto=format&fit=crop&w=800&q=80",
                 badgeBg: "bg-[#163140]/80",
               },
               {
                 id: 4,
-                tag: "Lifecycle",
-                title: "Trust matters",
-                subtitle: "Long-term OEM maintenance & genuine spare parts supply",
+                tag: t.servicesUI.pillar4Tag || "Lifecycle",
+                title: t.servicesUI.pillar4Title || "Trust matters",
+                subtitle: t.servicesUI.pillar4Sub || "Long-term OEM maintenance & genuine spare parts supply",
                 image: heroFooterImg,
                 badgeBg: "bg-[#005883]/80",
               },
@@ -799,12 +814,12 @@ export const ServicesPage: React.FC = () => {
           
           {/* Headline (Proportional Typography Size) */}
           <h2 className="text-4xl sm:text-5xl md:text-6xl font-extrabold text-white leading-tight tracking-tight font-sans max-w-lg">
-            Build with us
+            {t.servicesUI.buildWithUsTitle || "Build with us"}
           </h2>
 
           {/* Paragraph */}
           <p className="text-xs sm:text-sm md:text-base text-white/90 font-sans font-medium leading-relaxed max-w-md">
-            Share a few details and our engineering infrastructure team will follow up within one business day. If you're close to Qingdao, ask about a tour of our Innovation Hub.
+            {t.servicesUI.buildWithUsDesc || "Share a few details and our engineering infrastructure team will follow up within one business day. If you're close to Qingdao, ask about a tour of our Innovation Hub."}
           </p>
 
           {/* Action Button */}
@@ -813,7 +828,7 @@ export const ServicesPage: React.FC = () => {
               href="#contact"
               className="rounded-xl bg-white text-[#005883] hover:bg-slate-100 px-6 py-3 text-xs sm:text-sm font-sans font-bold uppercase tracking-wider transition-all shadow-md inline-block cursor-pointer"
             >
-              CONTACT SALES
+              {t.servicesUI.contactSalesBtn || "CONTACT SALES"}
             </a>
           </div>
 
@@ -831,10 +846,10 @@ export const ServicesPage: React.FC = () => {
               <div className="flex items-start justify-between gap-4 border-b border-border/60 pb-4 text-left">
                 <div>
                   <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-[#005883] dark:text-sky-400 bg-[#005883]/10 px-3 py-1 rounded-md">
-                    {detail.categoryTitle}
+                    {getTrans(detail.categoryTitle, currentLanguage)}
                   </span>
                   <h3 className="text-xl sm:text-2xl font-extrabold text-foreground mt-2">
-                    {detail.title}
+                    {getTrans(detail.title, currentLanguage)}
                   </h3>
                 </div>
                 <button
@@ -848,19 +863,19 @@ export const ServicesPage: React.FC = () => {
               {/* Modal Content */}
               <div className="space-y-5 text-left">
                 <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed font-medium">
-                  {detail.fullDesc}
+                  {getTrans(detail.fullDesc, currentLanguage)}
                 </p>
 
                 {/* Technical Scope Features */}
                 <div className="space-y-2">
                   <h4 className="text-xs font-mono font-bold uppercase text-foreground tracking-wider">
-                    Technical Execution Scope
+                    {t.servicesUI.modalScopeTitle || "Technical Execution Scope"}
                   </h4>
                   <div className="rounded-2xl bg-secondary/50 p-4 border border-border/60 space-y-2">
                     {detail.features.map((feat, idx) => (
                       <div key={idx} className="flex items-center gap-2.5 text-xs py-1">
                         <CheckCircle2 className="h-4 w-4 text-[#005883] dark:text-sky-400 shrink-0" />
-                        <span className="text-foreground font-medium">{feat}</span>
+                        <span className="text-foreground font-medium">{getTrans(feat, currentLanguage)}</span>
                       </div>
                     ))}
                   </div>
@@ -869,13 +884,13 @@ export const ServicesPage: React.FC = () => {
                 {/* Official Deliverables */}
                 <div className="space-y-2">
                   <h4 className="text-xs font-mono font-bold uppercase text-foreground tracking-wider">
-                    Client Deliverables & Certificates
+                    {t.servicesUI.modalDeliverablesTitle || "Client Deliverables & Certificates"}
                   </h4>
                   <div className="rounded-2xl bg-secondary/50 p-4 border border-border/60 space-y-2">
                     {detail.deliverables.map((deliv, idx) => (
                       <div key={idx} className="flex items-center gap-2.5 text-xs py-1">
                         <FileCheck2 className="h-4 w-4 text-[#8ec63f] shrink-0" />
-                        <span className="text-foreground font-medium">{deliv}</span>
+                        <span className="text-foreground font-medium">{getTrans(deliv, currentLanguage)}</span>
                       </div>
                     ))}
                   </div>
@@ -885,13 +900,13 @@ export const ServicesPage: React.FC = () => {
               {/* Modal Footer Action */}
               <div className="pt-4 border-t border-border/60 flex items-center justify-between gap-4">
                 <div className="text-xs text-muted-foreground font-mono font-semibold">
-                  Est. Turnaround: <span className="font-bold text-foreground">{detail.turnaroundTime}</span>
+                  {t.servicesUI.modalEstTurnaround || "Est. Turnaround:"} <span className="font-bold text-foreground">{getTrans(detail.turnaroundTime, currentLanguage)}</span>
                 </div>
                 <button
                   onClick={() => setSelectedServiceDetail(null)}
                   className="rounded-xl bg-[#005883] text-white text-xs font-sans font-bold px-6 py-2.5 hover:bg-[#008193] transition-all cursor-pointer shadow-xs"
                 >
-                  Close Specification
+                  {t.servicesUI.modalCloseBtn || "Close Specification"}
                 </button>
               </div>
             </div>
@@ -899,6 +914,9 @@ export const ServicesPage: React.FC = () => {
         );
       })()}
 
-    </div>
+      </div>
+    </AppLayout>
   );
 };
+
+export default ServicesPage;

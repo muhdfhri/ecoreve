@@ -3,23 +3,24 @@ import heroBannerImg from "@/assets/hero-banner.webp";
 import heroFooterImg from "@/assets/hero-footer.webp";
 import { useTranslation } from "@/i18n/useTranslation";
 
-export const ProductsSection: React.FC = () => {
+interface ProductsSectionProps {
+  featuredProducts?: any[];
+}
+
+export const ProductsSection: React.FC<ProductsSectionProps> = ({ featuredProducts = [] }) => {
   const { t } = useTranslation();
 
   return (
     <section className="w-full bg-secondary/30 border-y border-border/60 py-12 md:py-16" id="capabilities">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8">
         {/* Top Header Row */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
           <div>
-            <span className="inline-block rounded-full bg-secondary px-3.5 py-1 text-xs font-bold text-primary border border-border/80">
-              {t.catalog.badge}
-            </span>
-            <h2 className="mt-3 text-3xl md:text-5xl font-extrabold tracking-tight text-foreground leading-[1.1]">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-snug">
               {t.catalog.title}
             </h2>
           </div>
-          <p className="max-w-md text-xs md:text-sm text-muted-foreground leading-relaxed">
+          <p className="max-w-md text-xs sm:text-sm md:text-base text-muted-foreground leading-relaxed font-normal">
             {t.catalog.subtitle}
           </p>
         </div>
