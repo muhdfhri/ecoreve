@@ -3,4 +3,4 @@ Allow: /
 Disallow: /admin/
 Disallow: /login
 
-Sitemap: https://ecoreve.com/sitemap.xml
+Sitemap: https://ecoreve.premier-engineering.co.id/sitemap.xml

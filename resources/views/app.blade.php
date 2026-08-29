@@ -15,19 +15,20 @@
 
     <!-- GOOGLE SITELINKS & ORGANIZATION JSON-LD SCHEMA.ORG -->
     <script type="application/ld+json">
+    @verbatim
     {
       "@context": "https://schema.org",
       "@graph": [
         {
           "@type": "WebSite",
-          "@id": "https://ecoreve.com/#website",
-          "url": "https://ecoreve.com/",
+          "@id": "https://ecoreve.premier-engineering.co.id/#website",
+          "url": "https://ecoreve.premier-engineering.co.id/",
           "name": "EcoReve",
           "description": "Sustainable Industrial Water & Environmental Engineering Solutions",
           "publisher": {
             "@type": "Organization",
             "name": "PT EcoReve Indonesia",
-            "logo": "https://ecoreve.com/logo.png"
+            "logo": "https://ecoreve.premier-engineering.co.id/logo.png"
           }
         },
         {
@@ -39,40 +40,41 @@
               "position": 1,
               "name": "Products & Solutions",
               "description": "Industrial wastewater treatment equipment, MBR membranes, and ZLD systems.",
-              "url": "https://ecoreve.com/products"
+              "url": "https://ecoreve.premier-engineering.co.id/products"
             },
             {
               "@type": "SiteNavigationElement",
               "position": 2,
               "name": "Engineering Services",
               "description": "Turnkey EPC project execution, environmental consulting, and plant maintenance.",
-              "url": "https://ecoreve.com/services"
+              "url": "https://ecoreve.premier-engineering.co.id/services"
             },
             {
               "@type": "SiteNavigationElement",
               "position": 3,
               "name": "News & Research",
               "description": "Latest green technology research, industrial partnerships, and company updates.",
-              "url": "https://ecoreve.com/news"
+              "url": "https://ecoreve.premier-engineering.co.id/news"
             },
             {
               "@type": "SiteNavigationElement",
               "position": 4,
               "name": "About Us",
               "description": "Leading environmental engineering firm dedicated to industrial sustainability.",
-              "url": "https://ecoreve.com/about"
+              "url": "https://ecoreve.premier-engineering.co.id/about-us"
             },
             {
               "@type": "SiteNavigationElement",
               "position": 5,
               "name": "Contact & Inquiries",
               "description": "Get in touch with EcoReve environmental engineering specialists.",
-              "url": "https://ecoreve.com/contact"
+              "url": "https://ecoreve.premier-engineering.co.id/contact"
             }
           ]
         }
       ]
     }
+    @endverbatim
     </script>
 
     @viteReactRefresh

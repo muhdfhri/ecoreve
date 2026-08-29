@@ -121,7 +121,7 @@ export const NewsPage: React.FC<NewsPageProps> = ({ dbArticles, dbCategories, sl
       <SEOHead
         title="News & Research — EcoReve"
         description="Latest green technology research, industrial partnerships, zero liquid discharge innovations, and environmental engineering company updates."
-        url="https://ecoreve.com/news"
+        url="https://ecoreve.premier-engineering.co.id/news"
       />
       <div className="w-full min-h-screen bg-background text-foreground pb-20 pt-3 relative">
       {/* 1. Primary Background Monochrome Industrial Image Overlay */}

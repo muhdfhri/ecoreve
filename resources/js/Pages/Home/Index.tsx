@@ -20,7 +20,7 @@ export default function HomeIndex({ featuredProducts = [], latestNews = [] }: Ho
       <SEOHead
         title="EcoReve — Sustainable Industrial Water & Environmental Engineering"
         description="EcoReve provides advanced wastewater treatment, MBR membranes, zero liquid discharge (ZLD), and green environmental engineering solutions across Southeast Asia."
-        url="https://ecoreve.com"
+        url="https://ecoreve.premier-engineering.co.id"
       />
       <HeroSection />
       <VideoActionSection />

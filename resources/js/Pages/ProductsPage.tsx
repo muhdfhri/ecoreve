@@ -764,7 +764,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       <SEOHead
         title="Products & Solutions — EcoReve"
         description="Explore EcoReve's comprehensive industrial wastewater treatment equipment, MBR membranes, zero liquid discharge (ZLD) plants, and automated dosing skids."
-        url="https://ecoreve.com/products"
+        url="https://ecoreve.premier-engineering.co.id/products"
       />
       <div className="w-full min-h-screen bg-background text-foreground pb-20">
         {/* SECTION 1: FULL-BLEED CORPORATE BLUE HERO WITH CANTOR8 STEPPED ANIMATED LINE */}

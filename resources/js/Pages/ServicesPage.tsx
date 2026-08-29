@@ -324,7 +324,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({
       <SEOHead
         title="Engineering Services — EcoReve"
         description="Turnkey EPC project execution, environmental consulting, on-site plant commissioning, membrane retrofits, and 24/7 telemetry maintenance."
-        url="https://ecoreve.com/services"
+        url="https://ecoreve.premier-engineering.co.id/services"
       />
       <div className="w-full min-h-screen bg-background text-foreground pb-0">
         {/* SECTION 1: FULL-BLEED CORPORATE BLUE HERO WITH DYNAMIC SERVICES TELEMETRY CURVE */}

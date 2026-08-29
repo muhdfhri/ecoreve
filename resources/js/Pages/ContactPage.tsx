@@ -59,7 +59,7 @@ export const ContactPage: React.FC = () => {
       <SEOHead
         title="Contact & Inquiries — EcoReve"
         description="Get in touch with EcoReve environmental engineering specialists for custom plant designs, MBR membrane quotes, and ZLD consultations."
-        url="https://ecoreve.com/contact"
+        url="https://ecoreve.premier-engineering.co.id/contact"
       />
       <div className="w-full min-h-screen bg-background text-foreground pb-12 pt-3">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8">
