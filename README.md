@@ -2,7 +2,7 @@
 
 **EcoReve** (Qingdao Topolar New Material Co.,Ltd. / PT EcoReve Indonesia) is an enterprise-grade, full-stack web platform and Management System engineered for industrial wastewater treatment equipment, MBR membrane filtration systems, zero liquid discharge (ZLD) plants, and environmental engineering telemetry.
 
-The platform is architected around a **Laravel 11** backend engine paired seamlessly with a **Server-Driven SPA via Inertia.js 3.0, React 19, and TypeScript**, fully adhering to **Option 3 Design System Rules (Natural Modern Curves)** for visual consistency across device viewports.
+The platform is architected around a **Laravel 13** backend engine paired seamlessly with a **Server-Driven SPA via Inertia.js 3.0, React 19, and TypeScript**, fully adhering to **Option 3 Design System Rules (Natural Modern Curves)** for visual consistency across device viewports.
 
 ---
 
@@ -16,7 +16,7 @@ The platform is architected around a **Laravel 11** backend engine paired seamle
 - **Performance & Media Optimization**: Eager/async image decoding, instant Shadcn modal preview handlers, and responsive layout math.
 
 ### 2. Backend & Server Engine
-- **Framework Core**: Laravel 11 running on PHP 8.2+.
+- **Framework Core**: Laravel 13 running on PHP 8.3+.
 - **Database & Data Modeling**: MySQL / PostgreSQL utilizing Eloquent ORM for Products, Product Categories, Services, Service Categories, News, News Categories, Media, and Inquiries.
 - **Security & Authentication**: Custom JWT (JSON Web Token) / Session authentication layer, rate limiting, sliding inactivity timeout, and URL masking for admin portals.
 - **Media Asset Processing**: Dynamic physical storage scanner for `/assets/products/` and `/assets/news/` directories with automated metadata extraction (dimensions, filesize, mime-type, alt-text tags).
