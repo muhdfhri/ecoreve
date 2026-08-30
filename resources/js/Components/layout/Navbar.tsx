@@ -520,7 +520,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         {getTrans(currentProductCat?.title, currentLang)}
                       </h3>
                       <Link
-                        href={`/products?category=${currentProductCat?.id || 'water-treatment'}`}
+                        href="/products"
                         onClick={() => setOpenDropdown(null)}
                         className="group/btn relative overflow-hidden text-[10px] font-extrabold tracking-wider uppercase cursor-pointer border border-[#005883]/40 dark:border-sky-400/40 px-3.5 py-1.5 rounded-full transition-all duration-300 shadow-2xs"
                       >
@@ -634,7 +634,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         {getTrans(currentServiceCat?.title, currentLang)}
                       </h3>
                       <Link
-                        href={`/service?category=${currentServiceCat?.id || 'system-integration'}`}
+                        href="/service"
                         onClick={() => setOpenDropdown(null)}
                         className="group/btn relative overflow-hidden text-[10px] font-extrabold tracking-wider uppercase cursor-pointer border border-[#005883]/40 dark:border-sky-400/40 px-3.5 py-1.5 rounded-full transition-all duration-300 shadow-2xs"
                       >
@@ -779,14 +779,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {/* LEVEL 2: PRODUCTS SUB-MENU PANEL */}
                 {mobileActivePanel === "products" && (
                   <div className="space-y-4 text-left animate-in slide-in-from-right-4 fade-in-0 duration-300">
-                    <button
-                      type="button"
-                      onClick={() => setMobileActivePanel("main")}
-                      className="flex items-center gap-1.5 text-base font-extrabold text-foreground hover:text-[#005883] transition-colors py-1 cursor-pointer"
-                    >
-                      <ChevronLeft className="h-4.5 w-4.5 text-foreground" />
-                      <span>Back</span>
-                    </button>
+                    <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                      <button
+                        type="button"
+                        onClick={() => setMobileActivePanel("main")}
+                        className="flex items-center gap-1.5 text-base font-extrabold text-foreground hover:text-[#005883] transition-colors py-1 cursor-pointer"
+                      >
+                        <ChevronLeft className="h-4.5 w-4.5 text-foreground" />
+                        <span>Back</span>
+                      </button>
+
+                      <Link
+                        href="/products"
+                        onClick={onToggleMobileMenu}
+                        className="group/btn relative overflow-hidden text-[10px] font-extrabold tracking-wider uppercase cursor-pointer border border-[#005883]/40 dark:border-sky-400/40 px-3.5 py-1.5 rounded-full transition-all duration-300 shadow-2xs"
+                      >
+                        {/* Slide-Up Corporate Blue Background Overlay */}
+                        <span className="absolute inset-0 bg-[#005883] dark:bg-sky-500 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-out z-0" />
+                        
+                        {/* Button Text Label */}
+                        <span className="relative z-10 text-[#005883] dark:text-sky-400 group-hover/btn:text-white transition-colors duration-300">
+                          {t.common.viewAll}
+                        </span>
+                      </Link>
+                    </div>
 
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1 pt-1">
                       {productCategories.map((cat) => {
@@ -827,14 +843,30 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {/* LEVEL 2: SERVICE SUB-MENU PANEL */}
                 {mobileActivePanel === "service" && (
                   <div className="space-y-4 text-left animate-in slide-in-from-right-4 fade-in-0 duration-300">
-                    <button
-                      type="button"
-                      onClick={() => setMobileActivePanel("main")}
-                      className="flex items-center gap-1.5 text-base font-extrabold text-foreground hover:text-[#005883] transition-colors py-1 cursor-pointer"
-                    >
-                      <ChevronLeft className="h-4.5 w-4.5 text-foreground" />
-                      <span>Back</span>
-                    </button>
+                    <div className="flex items-center justify-between pb-2 border-b border-border/40">
+                      <button
+                        type="button"
+                        onClick={() => setMobileActivePanel("main")}
+                        className="flex items-center gap-1.5 text-base font-extrabold text-foreground hover:text-[#005883] transition-colors py-1 cursor-pointer"
+                      >
+                        <ChevronLeft className="h-4.5 w-4.5 text-foreground" />
+                        <span>Back</span>
+                      </button>
+
+                      <Link
+                        href="/service"
+                        onClick={onToggleMobileMenu}
+                        className="group/btn relative overflow-hidden text-[10px] font-extrabold tracking-wider uppercase cursor-pointer border border-[#005883]/40 dark:border-sky-400/40 px-3.5 py-1.5 rounded-full transition-all duration-300 shadow-2xs"
+                      >
+                        {/* Slide-Up Corporate Blue Background Overlay */}
+                        <span className="absolute inset-0 bg-[#005883] dark:bg-sky-500 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 ease-out z-0" />
+                        
+                        {/* Button Text Label */}
+                        <span className="relative z-10 text-[#005883] dark:text-sky-400 group-hover/btn:text-white transition-colors duration-300">
+                          {t.common.viewAll}
+                        </span>
+                      </Link>
+                    </div>
 
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1 pt-1">
                       {serviceCategories.map((cat) => {

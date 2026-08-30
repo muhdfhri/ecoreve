@@ -87,31 +87,45 @@ export const ProductDetailView: React.FC<ProductDetailProps> = ({
     <div className="w-full bg-background text-foreground pt-4 pb-8 px-4 sm:px-6 md:px-8">
       <div className="mx-auto max-w-[1320px] space-y-5">
         
-        {/* Clean Natural Breadcrumb Navigation Bar */}
-        <nav className="flex items-center gap-2 text-xs sm:text-sm font-sans font-medium text-muted-foreground pt-1 pb-1">
+        {/* Top Header Controls: Back Button & View All Products Link */}
+        <div className="flex items-center justify-between gap-4 pt-1 pb-1 border-b border-border/50">
+          {/* Left: Back Button & Breadcrumb */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={onBack}
+              className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-extrabold text-foreground hover:text-[#005883] dark:hover:text-sky-400 transition-colors cursor-pointer group py-1"
+            >
+              <ArrowLeft className="h-4 w-4 shrink-0 transition-transform group-hover:-translate-x-1 text-[#005883] dark:text-sky-400" />
+              <span>Back</span>
+            </button>
+
+            <span className="text-muted-foreground/40 font-light">|</span>
+
+            <nav className="flex items-center gap-1.5 text-xs sm:text-sm font-sans font-medium text-muted-foreground">
+              <button
+                onClick={onBack}
+                className="hover:text-[#005883] dark:hover:text-sky-400 transition-colors font-semibold cursor-pointer"
+              >
+                {t.nav.products}
+              </button>
+
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
+
+              <span className="font-bold text-foreground truncate max-w-[150px] sm:max-w-xs">
+                {getTrans(activeProduct.name, currentLanguage)}
+              </span>
+            </nav>
+          </div>
+
+          {/* Right: View All Products Action Link */}
           <button
             onClick={onBack}
-            className="hover:text-foreground transition-colors flex items-center gap-1 cursor-pointer"
-            title="Home / Products"
+            className="inline-flex items-center gap-1 text-xs font-mono font-bold text-[#005883] dark:text-sky-400 hover:underline cursor-pointer whitespace-nowrap shrink-0"
           >
-            <Home className="h-4 w-4 shrink-0 text-[#005883] dark:text-sky-400" />
+            <span>{t.common.viewAll || "View All"}</span>
+            <ChevronRight className="h-3.5 w-3.5 stroke-[2.5]" />
           </button>
-
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
-
-          <button
-            onClick={onBack}
-            className="hover:text-[#005883] dark:hover:text-sky-400 transition-colors font-semibold underline underline-offset-4 decoration-border hover:decoration-[#005883] cursor-pointer"
-          >
-            {t.productDetailUI.backToProducts || t.nav.products}
-          </button>
-
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground/50" />
-
-          <span className="font-bold text-foreground truncate max-w-[280px] sm:max-w-md">
-            {getTrans(activeProduct.name, currentLanguage)}
-          </span>
-        </nav>
+        </div>
         
         {/* MAIN PRODUCT DETAIL GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">

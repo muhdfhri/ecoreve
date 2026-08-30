@@ -14,6 +14,7 @@ import newsBgSecondary from "@/assets/news-bg-secondary.png";
 import {
   Pagination,
   PaginationContent,
+  PaginationEllipsis,
   PaginationItem,
   PaginationLink,
   PaginationNext,
@@ -332,45 +333,61 @@ export const NewsPage: React.FC<NewsPageProps> = ({ dbArticles, dbCategories, sl
 
             {/* PAGINATION UI (Matching Products Page Style 100%) */}
             {totalPages > 1 && (
-              <div className="pt-8 pb-2 flex justify-center border-t border-border/60">
-                <Pagination className="justify-center">
-                  <PaginationContent className="gap-1.5">
+              <div className="pt-8 pb-2 flex justify-center border-t border-border/60 overflow-x-auto scrollbar-none max-w-full px-2">
+                <Pagination className="justify-center w-auto">
+                  <PaginationContent className="gap-1 sm:gap-1.5 flex-nowrap">
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => handlePageChange(currentPage - 1)}
                         className={
                           currentPage === 1
-                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold"
-                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold"
+                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
+                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
                         }
                       >
                         {t.productsUI.paginationPrevious || "Previous"}
                       </PaginationPrevious>
                     </PaginationItem>
 
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          isActive={currentPage === page}
-                          onClick={() => handlePageChange(page)}
-                          className={`cursor-pointer rounded-xl font-sans font-semibold transition-all text-xs sm:text-sm ${
-                            currentPage === page
-                              ? "bg-[#005883] text-white border-[#005883] shadow-xs"
-                              : "border border-border/80 hover:bg-[#005883]/10 hover:border-[#005883]"
-                          }`}
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        // Always show page 1, last page, and current page +/- 1 on mobile
+                        if (totalPages <= 5) return true;
+                        return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                      })
+                      .map((page, index, array) => {
+                        const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
+                        return (
+                          <React.Fragment key={page}>
+                            {showEllipsisBefore && (
+                              <PaginationItem>
+                                <PaginationEllipsis className="h-9 w-7 text-xs text-muted-foreground" />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={currentPage === page}
+                                onClick={() => handlePageChange(page)}
+                                className={`cursor-pointer rounded-xl font-sans font-semibold transition-all text-xs h-9 w-9 p-0 flex items-center justify-center ${
+                                  currentPage === page
+                                    ? "bg-[#005883] text-white border-[#005883] shadow-xs"
+                                    : "border border-border/80 hover:bg-[#005883]/10 hover:border-[#005883]"
+                                }`}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        );
+                      })}
 
                     <PaginationItem>
                       <PaginationNext
                         onClick={() => handlePageChange(currentPage + 1)}
                         className={
                           currentPage === totalPages
-                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold"
-                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold"
+                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
+                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
                         }
                       >
                         {t.productsUI.paginationNext || "Next"}

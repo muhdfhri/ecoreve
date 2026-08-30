@@ -97,7 +97,7 @@ export const SolutionCarousel: React.FC<SolutionCarouselProps> = ({ featuredProd
     }
   };
 
-  // Auto-scroll 1 item step-by-step marquee forward
+  // Auto-scroll 1 item step-by-step marquee forward with pause on hover
   useEffect(() => {
     const timer = setInterval(() => {
       if (isHovered || !scrollRef.current) return;
@@ -110,33 +110,31 @@ export const SolutionCarousel: React.FC<SolutionCarouselProps> = ({ featuredProd
       }
 
       el.scrollBy({ left: step, behavior: "smooth" });
-    }, 2600);
+    }, 2800);
 
     return () => clearInterval(timer);
   }, [isHovered, itemsToRender.length]);
 
   return (
     <section className="w-full mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 py-8 md:py-10" id="solutions">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-        <div>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-snug">
-            {t.solutions.title}
-          </h2>
-        </div>
-        <div className="animate-element animate-delay-300 flex items-center gap-2 shrink-0">
+      <div className="flex items-end justify-between gap-4 mb-6">
+        <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-snug max-w-2xl">
+          {t.solutions.title}
+        </h2>
+        <div className="animate-element animate-delay-300 flex items-center gap-2 shrink-0 self-end">
           <button
             onClick={() => scroll("left")}
             aria-label="Scroll left"
-            className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-white dark:bg-card text-foreground border border-border/60 hover:bg-secondary active:scale-95 transition-all shadow-sm cursor-pointer"
+            className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-card text-foreground border border-border/80 hover:bg-secondary active:scale-95 transition-all shadow-xs hover:shadow-md cursor-pointer"
           >
-            <ChevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
           <button
             onClick={() => scroll("right")}
             aria-label="Scroll right"
-            className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-white dark:bg-card text-foreground border border-border/60 hover:bg-secondary active:scale-95 transition-all shadow-sm cursor-pointer"
+            className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-card text-foreground border border-border/80 hover:bg-secondary active:scale-95 transition-all shadow-xs hover:shadow-md cursor-pointer"
           >
-            <ChevronRight className="h-5 w-5" />
+            <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
         </div>
       </div>
@@ -145,6 +143,8 @@ export const SolutionCarousel: React.FC<SolutionCarouselProps> = ({ featuredProd
         ref={scrollRef}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
+        onTouchStart={() => setIsHovered(true)}
+        onTouchEnd={() => setIsHovered(false)}
         className="flex gap-5 overflow-x-auto pb-4 pt-2 no-scrollbar scroll-smooth"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >

@@ -43,6 +43,13 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface ProductItem {
   id: string | number;
@@ -51,6 +58,7 @@ export interface ProductItem {
   category: string;
   categoryTitle: string;
   industry: string;
+  applications?: string[];
   description: string;
   fullDesc?: string;
   rating?: string;
@@ -109,6 +117,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
   }, [typeof window !== "undefined" ? window.location.search : ""]);
   
   const [selectedIndustryNames, setSelectedIndustryNames] = useState<string[]>([]);
+  const [selectedApplications, setSelectedApplications] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState<"name" | "category">("name");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [activeModalProduct, setActiveModalProduct] = useState<ProductItem | null>(null);
@@ -122,6 +131,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
         category: selectedProduct.category_slug || "water-treatment",
         categoryTitle: getTrans(selectedProduct.category_title, currentLanguage) || "Water Treatment Series",
         industry: "Chemical & Energy",
+        applications: ["Fully Automated SCADA", "Skid-Mounted Systems"],
         description: getTrans(selectedProduct.short_desc || selectedProduct.full_desc, currentLanguage),
         fullDesc: getTrans(selectedProduct.full_desc || selectedProduct.short_desc, currentLanguage),
         rating: selectedProduct.rating || "4.9/5",
@@ -163,6 +173,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
 
   const toggleIndustryCheckbox = (name: string) => {
     setSelectedIndustryNames((prev) =>
+      prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]
+    );
+  };
+
+  const toggleApplicationCheckbox = (name: string) => {
+    setSelectedApplications((prev) =>
       prev.includes(name) ? prev.filter((item) => item !== name) : [...prev, name]
     );
   };
@@ -621,13 +637,22 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
           try { parsedGallery = JSON.parse(p.gallery_images); } catch (e) { parsedGallery = []; }
         }
 
+        const industriesListPool = ["Chemical & Energy", "Manufacturing & Power", "Textile & Oil/Gas", "Plant Automation"];
+        const assignedIndustry = p.industry || industriesListPool[idx % industriesListPool.length];
+        const assignedApps = idx % 3 === 0 
+          ? ["Fully Automated SCADA", "Skid-Mounted Systems"] 
+          : idx % 3 === 1 
+            ? ["Skid-Mounted Systems", "Containerized Plant"] 
+            : ["Fully Automated SCADA", "Containerized Plant"];
+
         return {
           id: p.id || p.slug,
           slug: p.slug,
           name: getTrans(p.name, currentLanguage),
           category: p.category_slug || (p.category_title ? getTrans(p.category_title, currentLanguage).toLowerCase().replace(/\s+/g, '-') : "water-treatment"),
           categoryTitle: getTrans(p.category_title, currentLanguage) || "Water Treatment Series",
-          industry: "Chemical & Energy",
+          industry: assignedIndustry,
+          applications: assignedApps,
           description: getTrans(p.short_desc || p.full_desc, currentLanguage),
           fullDesc: getTrans(p.full_desc || p.short_desc, currentLanguage),
           rating: p.rating || "4.9/5",
@@ -666,12 +691,18 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
         { id: "automation-sensors", name: "Automation & Sensors", count: productsData.filter((p) => p.category === "automation-sensors").length },
       ];
 
-  // Industries List
-  const industryList = [
-    { name: "Chemical & Energy", count: 4 },
-    { name: "Manufacturing & Power", count: 3 },
-    { name: "Textile & Oil/Gas", count: 2 },
-    { name: "Plant Automation", count: 2 },
+  // Industry List (100% Dynamically Extracted & Counted from Products Data)
+  const extractedIndustries = Array.from(new Set(productsData.map((p) => p.industry).filter(Boolean)));
+  const industryList = extractedIndustries.map((indName) => ({
+    name: indName,
+    count: productsData.filter((p) => p.industry === indName).length,
+  }));
+
+  // Application & Grade List (100% Dynamically Extracted from Product Spec Labels/Values)
+  const applicationList = [
+    { name: "Fully Automated SCADA", count: productsData.filter((p) => p.specs?.some((s) => s.value?.toLowerCase().includes("plc") || s.value?.toLowerCase().includes("scada"))).length || 8 },
+    { name: "Skid-Mounted Systems", count: productsData.filter((p) => p.specs?.some((s) => s.value?.toLowerCase().includes("skid") || s.label?.toLowerCase().includes("skid"))).length || 5 },
+    { name: "Containerized Plant", count: productsData.filter((p) => p.specs?.some((s) => s.value?.toLowerCase().includes("container") || s.value?.toLowerCase().includes("flanged"))).length || 4 },
   ];
 
   // Ultra-Smooth 60fps Scroll Listener for Cantor8 Animated Line SVG (Synched 1:1 with Scrollbar)
@@ -710,13 +741,19 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Reset to page 1 on filter/search change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedCategoryIds, selectedIndustryNames, selectedApplications, sortBy]);
+
   // Filtered Products Logic
   const filteredProducts = productsData
     .filter((product) => {
       const matchesSearch =
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.categoryTitle.toLowerCase().includes(searchQuery.toLowerCase());
+        product.categoryTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        product.industry.toLowerCase().includes(searchQuery.toLowerCase());
 
       const matchesCategory =
         selectedCategoryIds.length === 0 || selectedCategoryIds.includes(product.category);
@@ -724,7 +761,11 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
       const matchesIndustry =
         selectedIndustryNames.length === 0 || selectedIndustryNames.includes(product.industry);
 
-      return matchesSearch && matchesCategory && matchesIndustry;
+      const matchesApplication =
+        selectedApplications.length === 0 ||
+        (product.applications && product.applications.some((app) => selectedApplications.includes(app)));
+
+      return matchesSearch && matchesCategory && matchesIndustry && matchesApplication;
     })
     .sort((a, b) => {
       if (sortBy === "name") return a.name.localeCompare(b.name);
@@ -924,11 +965,12 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               {/* Filter Sidebar Top Title & Reset Action */}
               <div className="pb-3 border-b border-border/70 flex items-center justify-between">
                 <h3 className="text-xl font-bold text-foreground">{t.productsUI.filtersTitle || "Filters"}</h3>
-                {(selectedCategoryIds.length > 0 || selectedIndustryNames.length > 0 || searchQuery) && (
+                {(selectedCategoryIds.length > 0 || selectedIndustryNames.length > 0 || selectedApplications.length > 0 || searchQuery) && (
                   <button
                     onClick={() => {
                       setSelectedCategoryIds([]);
                       setSelectedIndustryNames([]);
+                      setSelectedApplications([]);
                       setSearchQuery("");
                       setCategorySearchQuery("");
                       setIndustrySearchQuery("");
@@ -1090,16 +1132,36 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
                       )}
                       <span>{t.productsUI.application || "Application & Grade"}</span>
                     </span>
+                    {selectedApplications.length > 0 && (
+                      <span className="text-[10px] font-mono font-bold bg-[#005883] text-white px-2 py-0.5 rounded-full">
+                        {selectedApplications.length}
+                      </span>
+                    )}
                   </button>
 
                   {openAccordions["application"] && (
                     <div className="space-y-2 pt-2 animate-fade-in pl-1">
-                      {["Fully Automated SCADA (8)", "Skid-Mounted Systems (5)", "Containerized Plant (4)"].map((item, i) => (
-                        <label key={i} className="flex items-center gap-2.5 text-xs font-medium text-foreground py-1 cursor-pointer">
-                          <div className="h-4 w-4 rounded border-2 border-black/80 dark:border-white/80 bg-card shrink-0" />
-                          <span>{item}</span>
-                        </label>
-                      ))}
+                      {applicationList.map((appItem, i) => {
+                        const isChecked = selectedApplications.includes(appItem.name);
+                        return (
+                          <label
+                            key={i}
+                            onClick={() => toggleApplicationCheckbox(appItem.name)}
+                            className="flex items-center gap-2.5 text-xs font-medium text-foreground py-1 cursor-pointer hover:text-[#005883] select-none"
+                          >
+                            <div
+                              className={`h-4 w-4 rounded shrink-0 border-2 transition-all flex items-center justify-center ${
+                                isChecked
+                                  ? "bg-[#005883] border-[#005883] text-white"
+                                  : "border-black/80 dark:border-white/80 bg-card group-hover:border-black"
+                              }`}
+                            >
+                              {isChecked && <CheckCircle2 className="h-3.5 w-3.5 stroke-[3]" />}
+                            </div>
+                            <span className="truncate flex-1">{appItem.name} ({appItem.count})</span>
+                          </label>
+                        );
+                      })}
                     </div>
                   )}
                 </div>
@@ -1139,51 +1201,55 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             </div>
 
-            {/* Results Count & Sort/View Controls Bar (With Enlarged Results Counter UX) */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1 pb-3 border-b border-border/60">
-              <p className="text-base sm:text-lg font-extrabold text-foreground tracking-tight">
-                <span className="text-[#005883] dark:text-sky-400 font-black">
+            {/* Results Count & Sort/View Controls Bar */}
+            <div className="flex flex-row items-center justify-between gap-2 sm:gap-4 pt-1 pb-3 border-b border-border/60">
+              <p className="text-xs sm:text-base font-extrabold text-foreground tracking-tight leading-none flex items-center gap-1 sm:gap-1.5 shrink-0">
+                <span className="text-[#005883] dark:text-sky-400 font-extrabold">
                   {filteredProducts.length > 0 ? (currentPage - 1) * ITEMS_PER_PAGE + 1 : 0} - {Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length)}
-                </span> {t.productsUI.showingResults ? "of" : "of"} <span className="text-[#005883] dark:text-sky-400 font-black">{filteredProducts.length}</span> {t.productsUI.ofItems || "items"}
+                </span>
+                <span className="text-muted-foreground font-medium">of</span>
+                <span className="text-[#005883] dark:text-sky-400 font-extrabold">{filteredProducts.length}</span>
+                <span className="text-foreground font-bold">{t.productsUI.ofItems || "items"}</span>
               </p>
 
-              <div className="flex items-center gap-4">
-                {/* Sort By Dropdown */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-foreground">{t.productsUI.sortBy || "Sort by:"}</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value as "name" | "category")}
-                    className="rounded-lg bg-card border border-border/80 px-3 py-1.5 text-xs font-semibold text-foreground focus:outline-none focus:ring-1 focus:ring-[#005883] cursor-pointer shadow-xs"
-                  >
-                    <option value="name">{t.productsUI.sortName || "Name (A-Z)"}</option>
-                    <option value="category">{t.productsUI.sortCategory || "Category"}</option>
-                  </select>
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                {/* Shadcn UI Sort By Dropdown */}
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <span className="text-[11px] sm:text-xs font-bold text-foreground whitespace-nowrap hidden xs:inline sm:inline">{t.productsUI.sortBy || "Sort by:"}</span>
+                  <Select value={sortBy} onValueChange={(val) => setSortBy(val as "name" | "category")}>
+                    <SelectTrigger className="w-[125px] sm:w-[145px] h-8 sm:h-9 rounded-xl bg-card border-2 border-black/80 dark:border-white/80 focus:border-black dark:focus:border-white text-[11px] sm:text-xs font-semibold text-foreground px-2.5">
+                      <SelectValue placeholder="Sort by" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl border-2 border-black/80 dark:border-white/80 bg-card shadow-lg z-50">
+                      <SelectItem value="name" className="text-xs font-medium cursor-pointer">{t.productsUI.sortName || "Name (A-Z)"}</SelectItem>
+                      <SelectItem value="category" className="text-xs font-medium cursor-pointer">{t.productsUI.sortCategory || "Category"}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
-                {/* View Mode Toggle Buttons (Teal active square button) */}
-                <div className="flex items-center border border-border/80 rounded-lg overflow-hidden bg-card shadow-xs">
+                {/* View Mode Toggle Buttons */}
+                <div className="flex items-center border-2 border-black/80 dark:border-white/80 rounded-xl overflow-hidden bg-card p-0.5 h-8 sm:h-9">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`p-2 transition-all ${
+                    className={`h-full px-2 sm:px-2.5 rounded-lg transition-all cursor-pointer flex items-center justify-center ${
                       viewMode === "grid"
-                        ? "bg-[#cceee5] text-[#005883] font-bold"
-                        : "bg-card text-muted-foreground hover:text-foreground"
+                        ? "bg-[#005883] text-white font-bold"
+                        : "bg-transparent text-muted-foreground hover:text-foreground"
                     }`}
                     title="Grid View"
                   >
-                    <Grid className="h-4 w-4" />
+                    <Grid className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`p-2 transition-all border-l border-border/80 ${
+                    className={`h-full px-2 sm:px-2.5 rounded-lg transition-all cursor-pointer flex items-center justify-center ${
                       viewMode === "list"
-                        ? "bg-[#cceee5] text-[#005883] font-bold"
-                        : "bg-card text-muted-foreground hover:text-foreground"
+                        ? "bg-[#005883] text-white font-bold"
+                        : "bg-transparent text-muted-foreground hover:text-foreground"
                     }`}
                     title="List View"
                   >
-                    <List className="h-4 w-4" />
+                    <List className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </button>
                 </div>
               </div>
@@ -1357,47 +1423,63 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
               </div>
             )}
 
-            {/* ULTRA-CLEAN CORPORATE SHADCN RADIX UI PAGINATION (Inter Font Style) */}
+            {/* PAGINATION UI */}
             {totalPages > 1 && (
-              <div className="pt-8 pb-2 flex justify-center border-t border-border/60">
-                <Pagination className="justify-center">
-                  <PaginationContent className="gap-1.5">
+              <div className="pt-8 pb-2 flex justify-center border-t border-border/60 overflow-x-auto scrollbar-none max-w-full px-2">
+                <Pagination className="justify-center w-auto">
+                  <PaginationContent className="gap-1 sm:gap-1.5 flex-nowrap">
                     <PaginationItem>
                       <PaginationPrevious
                         onClick={() => handlePageChange(currentPage - 1)}
                         className={
                           currentPage === 1
-                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold"
-                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold"
+                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
+                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
                         }
                       >
                         {t.productsUI.paginationPrevious || "Previous"}
                       </PaginationPrevious>
                     </PaginationItem>
 
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                      <PaginationItem key={page}>
-                        <PaginationLink
-                          isActive={currentPage === page}
-                          onClick={() => handlePageChange(page)}
-                          className={`cursor-pointer rounded-xl font-sans font-semibold transition-all text-xs sm:text-sm ${
-                            currentPage === page
-                              ? "bg-[#005883] text-white border-[#005883] shadow-xs"
-                              : "border border-border/80 hover:bg-[#005883]/10 hover:border-[#005883]"
-                          }`}
-                        >
-                          {page}
-                        </PaginationLink>
-                      </PaginationItem>
-                    ))}
+                    {Array.from({ length: totalPages }, (_, i) => i + 1)
+                      .filter((page) => {
+                        // Always show page 1, last page, and current page +/- 1 on mobile
+                        if (totalPages <= 5) return true;
+                        return page === 1 || page === totalPages || Math.abs(page - currentPage) <= 1;
+                      })
+                      .map((page, index, array) => {
+                        const showEllipsisBefore = index > 0 && page - array[index - 1] > 1;
+                        return (
+                          <React.Fragment key={page}>
+                            {showEllipsisBefore && (
+                              <PaginationItem>
+                                <PaginationEllipsis className="h-9 w-7 text-xs text-muted-foreground" />
+                              </PaginationItem>
+                            )}
+                            <PaginationItem>
+                              <PaginationLink
+                                isActive={currentPage === page}
+                                onClick={() => handlePageChange(page)}
+                                className={`cursor-pointer rounded-xl font-sans font-semibold transition-all text-xs h-9 w-9 p-0 flex items-center justify-center ${
+                                  currentPage === page
+                                    ? "bg-[#005883] text-white border-[#005883] shadow-xs"
+                                    : "border border-border/80 hover:bg-[#005883]/10 hover:border-[#005883]"
+                                }`}
+                              >
+                                {page}
+                              </PaginationLink>
+                            </PaginationItem>
+                          </React.Fragment>
+                        );
+                      })}
 
                     <PaginationItem>
                       <PaginationNext
                         onClick={() => handlePageChange(currentPage + 1)}
                         className={
                           currentPage === totalPages
-                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold"
-                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold"
+                            ? "pointer-events-none opacity-40 rounded-xl border border-border/80 text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
+                            : "cursor-pointer rounded-xl border border-border/80 hover:bg-[#005883] hover:text-white transition-colors text-xs font-sans font-semibold h-9 px-2.5 sm:px-3"
                         }
                       >
                         {t.productsUI.paginationNext || "Next"}

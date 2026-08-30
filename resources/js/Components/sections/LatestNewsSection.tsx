@@ -56,20 +56,18 @@ export const LatestNewsSection: React.FC<LatestNewsSectionProps> = ({ latestNews
     <section className="w-full bg-background py-10 sm:py-16 md:py-20 overflow-hidden" id="latest-news">
       <div className="mx-auto max-w-[1440px] px-4 sm:px-6 md:px-8 space-y-6 sm:space-y-8">
         {/* Section Header Row */}
-        <div className="reveal flex flex-col md:flex-row md:items-end justify-between gap-4 mb-4">
-          <div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-snug">
-              {t.newsUI.heroBadge}
-            </h2>
-          </div>
+        <div className="reveal flex items-end justify-between gap-4 mb-4">
+          <h2 className="text-xl sm:text-3xl md:text-4xl font-extrabold tracking-tight text-foreground leading-snug max-w-2xl">
+            {t.newsUI.heroBadge}
+          </h2>
 
           {/* Top Right Carousel Navigation Controls (< & >) */}
-          <div className="flex items-center gap-2 shrink-0 mb-0.5">
+          <div className="flex items-center gap-2 shrink-0 self-end">
             <button
               type="button"
               onClick={() => handleScroll("left")}
               aria-label="Previous News"
-              className="flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 items-center justify-center rounded-xl bg-white text-foreground border border-border/60 hover:bg-secondary active:scale-95 transition-all shadow-xs sm:shadow-sm cursor-pointer"
+              className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-card text-foreground border border-border/80 hover:bg-secondary active:scale-95 transition-all shadow-xs hover:shadow-md cursor-pointer"
             >
               <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
@@ -77,7 +75,7 @@ export const LatestNewsSection: React.FC<LatestNewsSectionProps> = ({ latestNews
               type="button"
               onClick={() => handleScroll("right")}
               aria-label="Next News"
-              className="flex h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 items-center justify-center rounded-xl bg-white text-foreground border border-border/60 hover:bg-secondary active:scale-95 transition-all shadow-xs sm:shadow-sm cursor-pointer"
+              className="flex h-9 w-9 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-card text-foreground border border-border/80 hover:bg-secondary active:scale-95 transition-all shadow-xs hover:shadow-md cursor-pointer"
             >
               <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
             </button>
