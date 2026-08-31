@@ -120,7 +120,7 @@ export const NewsPage: React.FC<NewsPageProps> = ({ dbArticles, dbCategories, sl
   return (
     <AppLayout activeNav="News">
       <SEOHead
-        title="News & Research — EcoReve"
+        title="News & Research - EcoReve"
         description="Latest green technology research, industrial partnerships, zero liquid discharge innovations, and environmental engineering company updates."
         url="https://ecoreve.premier-engineering.co.id/news"
       />

@@ -322,7 +322,7 @@ export const ServicesPage: React.FC<ServicesPageProps> = ({
   return (
     <AppLayout activeNav="Service">
       <SEOHead
-        title="Engineering Services — EcoReve"
+        title="Services - EcoReve"
         description="Turnkey EPC project execution, environmental consulting, on-site plant commissioning, membrane retrofits, and 24/7 telemetry maintenance."
         url="https://ecoreve.premier-engineering.co.id/services"
       />

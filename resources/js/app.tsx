@@ -5,10 +5,8 @@ import { createInertiaApp } from "@inertiajs/react";
 import { resolvePageComponent } from "laravel-vite-plugin/inertia-helpers";
 import { LanguageProvider } from "./i18n/LanguageContext";
 
-const appName = import.meta.env.VITE_APP_NAME || "Ecoreve - Qingdao Topolar New Material Co.,Ltd.";
-
 createInertiaApp({
-  title: (title) => (title ? `${title} - ${appName}` : appName),
+  title: (title) => title || "EcoReve - Qingdao Topolar New Material Co., Ltd.",
   resolve: (name) =>
     resolvePageComponent(
       `./Pages/${name}.tsx`,

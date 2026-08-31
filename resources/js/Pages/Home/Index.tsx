@@ -18,7 +18,7 @@ export default function HomeIndex({ featuredProducts = [], latestNews = [] }: Ho
   return (
     <AppLayout activeNav="Home">
       <SEOHead
-        title="EcoReve — Sustainable Industrial Water & Environmental Engineering"
+        title="EcoReve - Qingdao Topolar New Material Co., Ltd."
         description="EcoReve provides advanced wastewater treatment, MBR membranes, zero liquid discharge (ZLD), and green environmental engineering solutions across Southeast Asia."
         url="https://ecoreve.premier-engineering.co.id"
       />

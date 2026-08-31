@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title inertia>Ecoreve - Qingdao Topolar New Material Co.,Ltd.</title>
+    <title inertia>EcoReve - Qingdao Topolar New Material Co., Ltd.</title>
     <link rel="icon" type="image/png" href="/logo.png">
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
     <link rel="shortcut icon" href="/favicon.ico">

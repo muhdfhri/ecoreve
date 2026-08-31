@@ -803,7 +803,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({
   return (
     <AppLayout activeNav="Products">
       <SEOHead
-        title="Products & Solutions — EcoReve"
+        title="Products - EcoReve"
         description="Explore EcoReve's comprehensive industrial wastewater treatment equipment, MBR membranes, zero liquid discharge (ZLD) plants, and automated dosing skids."
         url="https://ecoreve.premier-engineering.co.id/products"
       />

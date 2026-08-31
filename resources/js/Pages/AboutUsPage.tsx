@@ -70,7 +70,7 @@ export const AboutUsPage: React.FC<AboutUsPageProps> = ({ faqs = [] }) => {
   return (
     <AppLayout activeNav="About us">
       <SEOHead
-        title="About Us — EcoReve"
+        title="About Us - EcoReve"
         description="Learn about EcoReve and Qingdao Topolar, leading environmental engineering OEMs for industrial wastewater treatment and zero liquid discharge."
         url="https://ecoreve.premier-engineering.co.id/about-us"
       />

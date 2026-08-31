@@ -10,13 +10,13 @@ export interface SEOHeadProps {
 }
 
 export const SEOHead: React.FC<SEOHeadProps> = ({
-  title = "EcoReve — Sustainable Industrial Water & Environmental Engineering",
+  title = "EcoReve - Qingdao Topolar New Material Co., Ltd.",
   description = "EcoReve provides advanced wastewater treatment, MBR membranes, zero liquid discharge (ZLD), and green environmental engineering solutions across Southeast Asia.",
   image = "https://ecoreve.premier-engineering.co.id/assets/og-cover.png",
   url = "https://ecoreve.premier-engineering.co.id",
   type = "website",
 }) => {
-  const fullTitle = title.includes("EcoReve") ? title : `${title} — EcoReve`;
+  const fullTitle = title;
 
   return (
     <Head>
