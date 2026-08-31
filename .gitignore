@@ -1,5 +1,6 @@
 # Environment & Configuration Files
 .env
+.env.example
 .env.local
 .env.development.local
 .env.test.local
@@ -7,7 +8,6 @@
 .env.backup
 .env.production
 *.env
-!.env.example
 
 # Composer & Node Dependencies
 /vendor
@@ -89,10 +89,12 @@ desktop.ini
 *.sln
 *.sw?
 
-# Temporary Generators, Seeders & Test Files
+# Temporary Generators, Seeders, Documentation & Test Files
 build_seeder.js
 make_seeder.mjs
 json_products.json
+Catalog_Products.md
+DESIGN_SYSTEM.md
 
 # AI Assistant & Tooling Artifacts
 .gemini
