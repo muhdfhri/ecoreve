@@ -1,4 +1,4 @@
-# Environment files
+# Environment & Configuration Files
 .env
 .env.local
 .env.development.local
@@ -7,22 +7,36 @@
 .env.backup
 .env.production
 *.env
+!.env.example
 
 # Composer & Node Dependencies
 /vendor
 node_modules
 .pnpm-store
 
-# Laravel Core Caches & Storage
+# Local Database Files
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+database/*.sqlite
+database/database.sqlite
+
+# Laravel Core Caches, Logs & Storage
 /bootstrap/cache/*.php
 !/bootstrap/cache/.gitignore
 /storage/*.key
+/storage/app/*
+!/storage/app/.gitignore
+!/storage/app/public
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/storage/debugbar/
 /storage/framework/cache/data/*
 /storage/framework/sessions/*
 /storage/framework/views/*
 /storage/framework/testing/*
-/storage/app/public/*
-!/storage/app/public/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
 /public/storage
 .phpunit.cache
 
@@ -37,41 +51,50 @@ build
 .tanstack/**
 .nitro
 
-# Logs & Temp
+# Logs & Temporary Files
 logs
 *.log
+*.tmp
+*.temp
+*.bak
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 .cache
-.temp
-.tmp
+.eslintcache
+.stylelintcache
+.tsbuildinfo
 
-# Wrangler / Cloudflare
+# Cloudflare & Deployment Tooling
 .wrangler/
 .dev.vars
 
-# Editor, IDE & System
-.vscode/*
-!.vscode/extensions.json
-.idea
-.fleet
+# Editors, IDEs & System Files
+.vscode/
+.idea/
+.fleet/
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
 Thumbs.db
+ehthumbs.db
+desktop.ini
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Scratch scripts, temporary seeder generators, and test JSONs
+# Temporary Generators, Seeders & Test Files
 build_seeder.js
 make_seeder.mjs
 json_products.json
 
-# Agent & AI tools temp data & artifacts
+# AI Assistant & Tooling Artifacts
 .gemini
 .antigravity
 .brain
